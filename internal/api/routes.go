@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"github.com/DavidMovas/SpeakUp-Server/internal/middlewares"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"net/http"
 
@@ -18,6 +19,8 @@ func RegisterAPI(_ context.Context, e *echo.Echo, logger *zap.Logger, _ *config.
 	api.GET("/health", func(c echo.Context) error {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
+
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
 	return nil
 }

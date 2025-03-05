@@ -27,3 +27,9 @@ metrics-up:
 
 metrics-down:
 	docker-compose -f ./deployments/compose/metrics.docker-compose.yaml --env-file=./.env up down
+
+telemetry-up:
+	docker-compose -f ./deployments/compose/telemetry.docker-compose.yaml --env-file=./.env up -d --build
+
+telemetry-down:
+	docker-compose -f ./deployments/compose/telemetry.docker-compose.yaml --env-file=./.env up down

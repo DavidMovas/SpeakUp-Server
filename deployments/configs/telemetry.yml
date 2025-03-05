@@ -1,0 +1,15 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+
+exporters:
+  debug:
+  otlp:
+    endpoint: jaeger:4317
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [debug, otlp]
