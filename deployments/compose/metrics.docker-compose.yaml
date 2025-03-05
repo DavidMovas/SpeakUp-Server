@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:v3.1.0
+    volumes:
+      - ../configs/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "19010:9090"
+    networks:
+      - monitoring
+
+  grafana:
+    container_name: grafana
+    image: grafana/grafana:11.5.0
+    ports:
+      - "19020:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+
+volumes:
+  grafana-data:
