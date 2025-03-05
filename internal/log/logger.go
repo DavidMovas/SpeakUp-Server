@@ -2,7 +2,7 @@ package log
 
 import (
 	"context"
-	"github.com/DavidMovas/SpeakUp-Server/utils/helpers"
+	"github.com/DavidMovas/SpeakUp-Server/internal/utils/helpers"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"io"

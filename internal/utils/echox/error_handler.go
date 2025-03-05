@@ -2,10 +2,10 @@ package echox
 
 import (
 	"errors"
+	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
 	"net/http"
 
 	"github.com/DavidMovas/SpeakUp-Server/contracts"
-	apperrors "github.com/DavidMovas/SpeakUp-Server/utils/error"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )

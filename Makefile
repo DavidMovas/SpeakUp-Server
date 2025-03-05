@@ -33,3 +33,10 @@ telemetry-up:
 
 telemetry-down:
 	docker-compose -f ./deployments/compose/telemetry.docker-compose.yaml --env-file=./.env up down
+
+# Protobuf
+buf-update:
+	cd ./scripts && buf dep update
+
+buf-gen:
+	cd ./scripts && buf generate

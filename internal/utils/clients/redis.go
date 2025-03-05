@@ -3,7 +3,7 @@ package clients
 import (
 	"context"
 	"crypto/tls"
-	apperrors "github.com/DavidMovas/SpeakUp-Server/utils/error"
+	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
 	"github.com/redis/go-redis/v9"
 	"net"
 	"time"

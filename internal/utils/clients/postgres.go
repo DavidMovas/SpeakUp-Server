@@ -2,7 +2,7 @@ package clients
 
 import (
 	"context"
-	apperrors "github.com/DavidMovas/SpeakUp-Server/utils/error"
+	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"net"
 	"time"

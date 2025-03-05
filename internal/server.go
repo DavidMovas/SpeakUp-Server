@@ -6,9 +6,11 @@ import (
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/handlers/http"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/repository"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/services"
-	"github.com/DavidMovas/SpeakUp-Server/utils/clients"
-	"github.com/DavidMovas/SpeakUp-Server/utils/metrics"
-	"github.com/DavidMovas/SpeakUp-Server/utils/telemetry"
+	clients2 "github.com/DavidMovas/SpeakUp-Server/internal/utils/clients"
+	"github.com/DavidMovas/SpeakUp-Server/internal/utils/echox"
+	"github.com/DavidMovas/SpeakUp-Server/internal/utils/helpers"
+	"github.com/DavidMovas/SpeakUp-Server/internal/utils/metrics"
+	"github.com/DavidMovas/SpeakUp-Server/internal/utils/telemetry"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/trace"
 	"time"
@@ -16,8 +18,6 @@ import (
 	"github.com/DavidMovas/SpeakUp-Server/internal/api"
 	"github.com/DavidMovas/SpeakUp-Server/internal/config"
 	"github.com/DavidMovas/SpeakUp-Server/internal/log"
-	"github.com/DavidMovas/SpeakUp-Server/utils/echox"
-	"github.com/DavidMovas/SpeakUp-Server/utils/helpers"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
@@ -52,7 +52,7 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 		return nil, err
 	}
 
-	postgres, err := clients.NewPostgresClient(ctx, cfg.PostgresURL, nil)
+	postgres, err := clients2.NewPostgresClient(ctx, cfg.PostgresURL, nil)
 	if err != nil {
 		logger.Error("Failed to create postgres client", zap.Error(err))
 		return nil, err
@@ -63,7 +63,7 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 		return nil
 	})
 
-	redis, err := clients.NewRedisClient(cfg.RedisURL, nil)
+	redis, err := clients2.NewRedisClient(cfg.RedisURL, nil)
 	if err != nil {
 		logger.Error("Failed to create redis client", zap.Error(err))
 		return nil, err
