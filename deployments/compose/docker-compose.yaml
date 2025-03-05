@@ -5,8 +5,8 @@ services:
   api-server:
     container_name: api-server
     build:
-      context: .
-      dockerfile: ./Dockerfile
+      context: ../..
+      dockerfile: ./deployments/docker/api-server.dockerfile
     environment:
       LOCAL: ${LOCAL}
       LOG_LEVEL: ${LOG_LEVEL}

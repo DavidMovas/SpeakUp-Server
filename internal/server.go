@@ -33,8 +33,9 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 	e := echo.New()
 	e.HTTPErrorHandler = echox.NewErrorHandler(logger.Logger)
 	e.HideBanner = true
+	e.HidePort = true
 
-	err = api.RegisterAPI(ctx, e, logger, cfg)
+	err = api.RegisterAPI(ctx, e, logger.Logger, cfg)
 	if err != nil {
 		logger.Warn("register api failed", zap.Error(err))
 		return nil, fmt.Errorf("register api: %w", err)

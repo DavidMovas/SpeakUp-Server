@@ -11,7 +11,7 @@ run:
 	go run .
 
 up:
-	docker-compose -f ./docker-compose.yaml --env-file=./.env up -d --build
+	docker-compose -f ./deployments/compose/docker-compose.yaml --env-file=./.env up -d --build
 
 down:
-	docker-compose -f ./docker-compose.yaml --env-file=./.env up down
+	docker-compose -f ./deployments/compose/docker-compose.yaml --env-file=./.env up down
