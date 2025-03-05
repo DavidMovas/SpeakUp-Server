@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/DavidMovas/SpeakUp-Server/internal/middlewares"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/trace"
 	"go.uber.org/zap"
 	"net/http"
 
@@ -11,7 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func RegisterAPI(_ context.Context, e *echo.Echo, logger *zap.Logger, _ *config.Config) error {
+func RegisterAPI(_ context.Context, e *echo.Echo, _ *trace.TracerProvider, _ *metric.MeterProvider, logger *zap.Logger, _ *config.Config) error {
 	api := e.Group("/api")
 
 	api.Use(middlewares.NewLoggingMiddleware(logger))

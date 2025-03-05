@@ -13,6 +13,7 @@ services:
       HTTP_PORT: ${HTTP_PORT}
       START_TIMEOUT: ${START_TIMEOUT}
       SHUTDOWN_TIMEOUT: ${SHUTDOWN_TIMEOUT}
+      TRACER_URL: ${TRACER_URL}
     ports:
       - ${HTTP_PORT}:${HTTP_PORT}
     networks:
