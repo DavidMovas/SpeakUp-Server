@@ -2,30 +2,20 @@ package log
 
 import (
 	"context"
-	"io"
-	"os"
-
 	"github.com/DavidMovas/SpeakUp-Server/utils/helpers"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"io"
 )
 
 var _ io.Closer = (*Logger)(nil)
 
 type Logger struct {
 	*zap.Logger
-	file io.Closer
 }
 
 func NewLogger(local bool, level string) (*Logger, error) {
 	var logger Logger
-
-	logFile, err := os.OpenFile("/var/log/logger.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o666)
-	if err != nil {
-		return nil, err
-	}
-
-	logger.file = logFile
 
 	var zapCfg zap.Config
 	if local {
@@ -69,5 +59,5 @@ func FromContext(ctx context.Context) (*Logger, bool) {
 }
 
 func (l *Logger) Close() error {
-	return helpers.WithClosers([]func() error{l.file.Close, l.Logger.Sync}, nil)
+	return helpers.WithClosers([]func() error{l.Logger.Sync}, nil)
 }

@@ -31,7 +31,7 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 	closers = append(closers, logger.Close)
 
 	e := echo.New()
-	e.HTTPErrorHandler = echox.ErrorHandler
+	e.HTTPErrorHandler = echox.NewErrorHandler(logger.Logger)
 	e.HideBanner = true
 
 	err = api.RegisterAPI(ctx, e, logger, cfg)
@@ -43,6 +43,7 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 	return &Server{
 		e:       e,
 		logger:  logger,
+		cfg:     cfg,
 		closers: closers,
 	}, nil
 }

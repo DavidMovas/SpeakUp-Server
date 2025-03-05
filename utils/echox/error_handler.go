@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/DavidMovas/SpeakUp-Server/contracts"
-	"github.com/DavidMovas/SpeakUp-Server/internal/log"
 	apperrors "github.com/DavidMovas/SpeakUp-Server/utils/error"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
@@ -16,38 +15,38 @@ type HTTPError struct {
 	IncidentID string `json:"incident_id,omitempty"`
 }
 
-func ErrorHandler(err error, c echo.Context) {
-	if c.Response().Committed {
-		return
-	}
+func NewErrorHandler(logger *zap.Logger) func(err error, c echo.Context) {
+	return func(err error, c echo.Context) {
+		if c.Response().Committed {
+			return
+		}
 
-	var appError *apperrors.Error
+		var appError *apperrors.Error
 
-	if !errors.As(err, &appError) {
-		appError = apperrors.InternalWithoutStackTrace(err)
-	}
+		if !errors.As(err, &appError) {
+			appError = apperrors.InternalWithoutStackTrace(err)
+		}
 
-	httpError := contracts.HTTPError{
-		Message:    appError.SafeError(),
-		IncidentID: appError.IncidentID,
-	}
+		httpError := contracts.HTTPError{
+			Message:    appError.SafeError(),
+			IncidentID: appError.IncidentID,
+		}
 
-	logger, ok := log.FromContext(c.Request().Context())
+		if appError.Code == apperrors.InternalCode {
+			logger.Error("server error",
+				zap.String("message", err.Error()),
+				zap.String("incident_id", appError.IncidentID),
+				zap.String("method", c.Request().Method),
+				zap.String("url", c.Request().URL.String()),
+				zap.String("stack_trace", appError.StackTrace),
+			)
+		} else {
+			logger.Warn("client error", zap.String("message", err.Error()))
+		}
 
-	if appError.Code == apperrors.InternalCode {
-		logger.Error("server error",
-			zap.String("message", err.Error()),
-			zap.String("incident_id", appError.IncidentID),
-			zap.String("method", c.Request().Method),
-			zap.String("url", c.Request().URL.String()),
-			zap.String("stack_trace", appError.StackTrace),
-		)
-	} else if ok {
-		logger.Warn("client error", zap.String("message", err.Error()))
-	}
-
-	if err = c.JSON(toHTTPStatus(appError.Code), httpError); err != nil {
-		c.Logger().Error(err)
+		if err = c.JSON(toHTTPStatus(appError.Code), httpError); err != nil {
+			c.Logger().Error(err)
+		}
 	}
 }
 

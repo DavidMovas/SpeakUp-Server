@@ -24,6 +24,10 @@ func main() {
 	defer startCancel()
 
 	srv, err := internal.NewServer(startCtx, cfg)
+	if err != nil {
+		slog.Error("Error starting server: ", "error", err)
+		return
+	}
 
 	go func() {
 		signalCh := make(chan os.Signal, 1)
