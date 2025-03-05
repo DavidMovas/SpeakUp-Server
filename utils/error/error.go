@@ -3,8 +3,9 @@ package error
 import (
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
 	"runtime/debug"
+
+	"github.com/google/uuid"
 )
 
 type Code int

@@ -2,11 +2,12 @@ package log
 
 import (
 	"context"
+	"io"
+	"os"
+
 	"github.com/DavidMovas/SpeakUp-Server/utils/helpers"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"io"
-	"os"
 )
 
 var _ io.Closer = (*Logger)(nil)

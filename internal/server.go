@@ -3,6 +3,8 @@ package internal
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/DavidMovas/SpeakUp-Server/internal/api"
 	"github.com/DavidMovas/SpeakUp-Server/internal/config"
 	"github.com/DavidMovas/SpeakUp-Server/internal/log"
@@ -10,7 +12,6 @@ import (
 	"github.com/DavidMovas/SpeakUp-Server/utils/helpers"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
-	"time"
 )
 
 type Server struct {
@@ -31,12 +32,18 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 
 	e := echo.New()
 	e.HTTPErrorHandler = echox.ErrorHandler
+	e.HideBanner = true
 
-	api.RegisterRoutes(e)
+	err = api.RegisterAPI(ctx, e, logger, cfg)
+	if err != nil {
+		logger.Warn("register api failed", zap.Error(err))
+		return nil, fmt.Errorf("register api: %w", err)
+	}
 
 	return &Server{
-		e:      e,
-		logger: logger,
+		e:       e,
+		logger:  logger,
+		closers: closers,
 	}, nil
 }
 

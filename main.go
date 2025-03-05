@@ -1,17 +1,46 @@
 package main
 
 import (
+	"context"
+	"errors"
+	"log/slog"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
-	"github.com/labstack/echo/v4"
+	"github.com/DavidMovas/SpeakUp-Server/internal"
+	"github.com/DavidMovas/SpeakUp-Server/internal/config"
 )
 
 func main() {
-	e := echo.New()
+	cfg, err := config.NewConfig()
+	if err != nil {
+		slog.Error("Error loading config: ", "error", err)
+		return
+	}
 
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
-	})
+	startCtx, startCancel := context.WithTimeout(context.Background(), cfg.StartTimeout)
+	defer startCancel()
 
-	e.Logger.Fatal(e.Start(":8080"))
+	srv, err := internal.NewServer(startCtx, cfg)
+
+	go func() {
+		signalCh := make(chan os.Signal, 1)
+		signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
+
+		<-signalCh
+		slog.Info("Shutting down server...")
+
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
+		defer shutdownCancel()
+
+		if err = srv.Shutdown(shutdownCtx); err != nil {
+			slog.Warn("Server forced to shutdown", "error", err)
+		}
+	}()
+
+	if err = srv.Start(); !errors.Is(err, http.ErrServerClosed) {
+		slog.Error("Server failed to start", "error", err)
+	}
 }

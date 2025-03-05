@@ -2,12 +2,13 @@ package echox
 
 import (
 	"errors"
+	"net/http"
+
 	"github.com/DavidMovas/SpeakUp-Server/contracts"
-	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/error"
 	"github.com/DavidMovas/SpeakUp-Server/internal/log"
+	apperrors "github.com/DavidMovas/SpeakUp-Server/utils/error"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
-	"net/http"
 )
 
 type HTTPError struct {
@@ -41,10 +42,8 @@ func ErrorHandler(err error, c echo.Context) {
 			zap.String("url", c.Request().URL.String()),
 			zap.String("stack_trace", appError.StackTrace),
 		)
-	} else {
-		if ok {
-			logger.Warn("client error", zap.String("message", err.Error()))
-		}
+	} else if ok {
+		logger.Warn("client error", zap.String("message", err.Error()))
 	}
 
 	if err = c.JSON(toHTTPStatus(appError.Code), httpError); err != nil {
