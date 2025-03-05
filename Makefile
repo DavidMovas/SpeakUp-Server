@@ -10,8 +10,14 @@ tidy:
 run:
 	go run .
 
-up:
-	docker-compose -f ./deployments/compose/docker-compose.yaml --env-file=./.env up -d --build
+api-up:
+	docker-compose -f ./deployments/compose/api-server.docker-compose.yaml --env-file=./.env up -d --build
 
-down:
-	docker-compose -f ./deployments/compose/docker-compose.yaml --env-file=./.env up down
+api-down:
+	docker-compose -f ./deployments/compose/api-server.docker-compose.yaml --env-file=./.env up down
+
+logging-up:
+	docker-compose -f ./deployments/compose/logging.docker-compose.yaml --env-file=./.env up -d --build
+
+logging-down:
+	docker-compose -f ./deployments/compose/logging.docker-compose.yaml --env-file=./.env up down

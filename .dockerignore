@@ -9,6 +9,9 @@
 *.so
 *.dylib
 .idea
+deployments
+.golangci.yml
+README.md
 
 # Test binary, built with `go test -c`
 *.test

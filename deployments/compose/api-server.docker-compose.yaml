@@ -17,6 +17,8 @@ services:
       - ${HTTP_PORT}:${HTTP_PORT}
     networks:
       - api-server-net
+      - monitoring
 
 networks:
   api-server-net:
+  monitoring:
