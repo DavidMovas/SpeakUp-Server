@@ -8,18 +8,73 @@ services:
       context: ../..
       dockerfile: ./deployments/docker/api-server.dockerfile
     environment:
+      SERVER_NAME: ${SERVER_NAME}
       LOCAL: ${LOCAL}
       LOG_LEVEL: ${LOG_LEVEL}
       HTTP_PORT: ${HTTP_PORT}
       START_TIMEOUT: ${START_TIMEOUT}
       SHUTDOWN_TIMEOUT: ${SHUTDOWN_TIMEOUT}
+      POSTGRES_URL: postgres://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      REDIS_URL: redis:6379
       TRACER_URL: ${TRACER_URL}
+      VERSION: ${VERSION}
     ports:
       - ${HTTP_PORT}:${HTTP_PORT}
     networks:
       - api-server-net
       - monitoring
 
+  redis:
+    image: redis:7.4-alpine
+    container_name: redis
+    ports:
+      - ${REDIS_DB_PORT}:6379
+    volumes:
+      - redis_data:/data
+    networks:
+      - api-server-net
+      - monitoring
+
+  postgres:
+    container_name: postgres
+    image: postgres:17.2-alpine
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    restart: on-failure
+    ports:
+      - ${DB_PORT}:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - api-server-net
+      - monitoring
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready --dbname ${DB_NAME} --username ${DB_USERNAME}" ]
+      interval: 2s
+      timeout: 15s
+
+  migrator:
+    build:
+      context: ../..
+      dockerfile: ./deployments/docker/tern-migrator.dockerfile
+    command:
+      - migrate
+      - --conn-string
+      - postgres://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
+      - --migrations
+      - /migrations
+    networks:
+      - api-server-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 networks:
   api-server-net:
   monitoring:
+
+volumes:
+  redis_data:
+  postgres_data:
