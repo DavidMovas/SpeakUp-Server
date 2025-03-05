@@ -1,0 +1,22 @@
+version: "3"
+
+services:
+
+  api-server:
+    container_name: api-server
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      LOCAL: ${LOCAL}
+      LOG_LEVEL: ${LOG_LEVEL}
+      HTTP_PORT: ${HTTP_PORT}
+      START_TIMEOUT: ${START_TIMEOUT}
+      SHUTDOWN_TIMEOUT: ${SHUTDOWN_TIMEOUT}
+    ports:
+      - ${HTTP_PORT}:${HTTP_PORT}
+    networks:
+      - api-server-net
+
+networks:
+  api-server-net:
