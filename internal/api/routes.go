@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	"github.com/DavidMovas/SpeakUp-Server/internal/api/handlers/http"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/handlers"
 	"github.com/DavidMovas/SpeakUp-Server/internal/middlewares"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/otel/sdk/metric"
@@ -13,7 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func RegisterAPI(_ context.Context, e *echo.Echo, handler *http.Handler, _ *trace.TracerProvider, _ *metric.MeterProvider, logger *zap.Logger, _ *config.Config) error {
+func RegisterAPI(_ context.Context, e *echo.Echo, handler *handlers.ChatHandler, _ *trace.TracerProvider, _ *metric.MeterProvider, logger *zap.Logger, _ *config.Config) error {
 	api := e.Group("/api")
 
 	api.Use(middlewares.NewLoggingMiddleware(logger))

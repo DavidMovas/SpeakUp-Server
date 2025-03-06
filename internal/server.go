@@ -3,9 +3,10 @@ package internal
 import (
 	"context"
 	"fmt"
-	"github.com/DavidMovas/SpeakUp-Server/internal/api/handlers/http"
-	"github.com/DavidMovas/SpeakUp-Server/internal/api/repository"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/handlers"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/services"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/stores"
+	chat "github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
 	clients2 "github.com/DavidMovas/SpeakUp-Server/internal/utils/clients"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/echox"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/helpers"
@@ -13,6 +14,8 @@ import (
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/telemetry"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/trace"
+	"google.golang.org/grpc"
+	"net"
 	"time"
 
 	"github.com/DavidMovas/SpeakUp-Server/internal/api"
@@ -23,12 +26,14 @@ import (
 )
 
 type Server struct {
-	e         *echo.Echo
-	logger    *log.Logger
-	telemetry *trace.TracerProvider
-	metrics   *metric.MeterProvider
-	cfg       *config.Config
-	closers   []func() error
+	e          *echo.Echo
+	listener   net.Listener
+	grpcServer *grpc.Server
+	logger     *log.Logger
+	telemetry  *trace.TracerProvider
+	metrics    *metric.MeterProvider
+	cfg        *config.Config
+	closers    []func() error
 }
 
 func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
@@ -71,9 +76,9 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 
 	closers = append(closers, redis.Close)
 
-	repo := repository.NewRepository(postgres, redis, logger.Logger)
-	service := services.NewService(repo, logger.Logger)
-	handler := http.NewHandler(service, logger.Logger)
+	repo := stores.NewChatsStore(postgres, redis, logger.Logger)
+	service := services.NewChatService(repo, logger.Logger)
+	handler := handlers.NewChatHandler(service, logger.Logger)
 
 	e := echo.New()
 	e.HTTPErrorHandler = echox.NewErrorHandler(logger.Logger)
@@ -85,6 +90,10 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 		logger.Warn("register api failed", zap.Error(err))
 		return nil, fmt.Errorf("register api: %w", err)
 	}
+
+	grpcServer := grpc.NewServer()
+
+	chat.RegisterChatServiceServer(grpcServer, handler)
 
 	return &Server{
 		e:         e,
