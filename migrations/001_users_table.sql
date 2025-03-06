@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS users (
     full_name VARCHAR(64) NOT NULL,
     bio VARCHAR(500),
     pass_hash VARCHAR(64) NOT NULL,
+    last_login_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP
 );

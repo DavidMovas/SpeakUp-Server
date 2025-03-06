@@ -18,4 +18,6 @@ func NewUsersStore(db *pgxpool.Pool, logger *zap.Logger) *UsersStore {
 	}
 }
 
-func (s *UsersStore) CreateUser(ctx context.Context) error {}
+func (s *UsersStore) CreateUser(ctx context.Context) error {
+	return nil
+}

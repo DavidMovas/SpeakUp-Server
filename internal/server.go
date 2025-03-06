@@ -7,7 +7,7 @@ import (
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/services"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/stores"
 	chat "github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
-	clients2 "github.com/DavidMovas/SpeakUp-Server/internal/utils/clients"
+	"github.com/DavidMovas/SpeakUp-Server/internal/utils/clients"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/echox"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/helpers"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/metrics"
@@ -57,7 +57,7 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 		return nil, err
 	}
 
-	postgres, err := clients2.NewPostgresClient(ctx, cfg.PostgresURL, nil)
+	postgres, err := clients.NewPostgresClient(ctx, cfg.PostgresURL, nil)
 	if err != nil {
 		logger.Error("Failed to create postgres client", zap.Error(err))
 		return nil, err
@@ -68,7 +68,7 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 		return nil
 	})
 
-	redis, err := clients2.NewRedisClient(cfg.RedisURL, nil)
+	redis, err := clients.NewRedisClient(cfg.RedisURL, nil)
 	if err != nil {
 		logger.Error("Failed to create redis client", zap.Error(err))
 		return nil, err
@@ -76,16 +76,16 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 
 	closers = append(closers, redis.Close)
 
-	repo := stores.NewChatsStore(postgres, redis, logger.Logger)
-	service := services.NewChatService(repo, logger.Logger)
-	handler := handlers.NewChatHandler(service, logger.Logger)
+	chatStore := stores.NewChatsStore(postgres, redis, logger.Logger)
+	chatService := services.NewChatService(chatStore, logger.Logger)
+	chatHandler := handlers.NewChatHandler(chatService, logger.Logger)
 
 	e := echo.New()
 	e.HTTPErrorHandler = echox.NewErrorHandler(logger.Logger)
 	e.HideBanner = true
 	e.HidePort = true
 
-	err = api.RegisterAPI(ctx, e, handler, telem, promet, logger.Logger, cfg)
+	err = api.RegisterAPI(ctx, e, chatHandler, telem, promet, logger.Logger, cfg)
 	if err != nil {
 		logger.Warn("register api failed", zap.Error(err))
 		return nil, fmt.Errorf("register api: %w", err)
@@ -93,7 +93,7 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 
 	grpcServer := grpc.NewServer()
 
-	chat.RegisterChatServiceServer(grpcServer, handler)
+	chat.RegisterChatServiceServer(grpcServer, chatHandler)
 
 	return &Server{
 		e:         e,

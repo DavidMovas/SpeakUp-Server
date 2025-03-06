@@ -20,4 +20,5 @@ func NewChatService(repo *stores.ChatsStore, logger *zap.Logger) *ChatService {
 }
 
 func (h *ChatService) CreateRoom(ctx context.Context, request *chat.CreateRoomRequest) (*chat.CreateRoomResponse, error) {
+	return nil, nil
 }
