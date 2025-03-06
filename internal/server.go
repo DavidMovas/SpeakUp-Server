@@ -6,7 +6,7 @@ import (
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/handlers"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/services"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/stores"
-	chat "github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
+	routes2 "github.com/DavidMovas/SpeakUp-Server/internal/routes"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/clients"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/echox"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/helpers"
@@ -14,11 +14,11 @@ import (
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/telemetry"
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/trace"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"net"
 	"time"
 
-	"github.com/DavidMovas/SpeakUp-Server/internal/api"
 	"github.com/DavidMovas/SpeakUp-Server/internal/config"
 	"github.com/DavidMovas/SpeakUp-Server/internal/log"
 	"github.com/labstack/echo/v4"
@@ -76,6 +76,10 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 
 	closers = append(closers, redis.Close)
 
+	usersStore := stores.NewUsersStore(postgres, logger.Logger)
+	usersService := services.NewUsersService(usersStore, logger.Logger)
+	usersHandler := handlers.NewUsersHandler(usersService, logger.Logger)
+
 	chatStore := stores.NewChatsStore(postgres, redis, logger.Logger)
 	chatService := services.NewChatService(chatStore, logger.Logger)
 	chatHandler := handlers.NewChatHandler(chatService, logger.Logger)
@@ -85,32 +89,68 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 	e.HideBanner = true
 	e.HidePort = true
 
-	err = api.RegisterAPI(ctx, e, chatHandler, telem, promet, logger.Logger, cfg)
+	grpcServer := grpc.NewServer()
+
+	err = routes2.RegisterHTTPAPI(e, telem, promet, logger.Logger, cfg)
 	if err != nil {
 		logger.Warn("register api failed", zap.Error(err))
 		return nil, fmt.Errorf("register api: %w", err)
 	}
 
-	grpcServer := grpc.NewServer()
-
-	chat.RegisterChatServiceServer(grpcServer, chatHandler)
+	err = routes2.RegisterGRPCAPI(grpcServer, usersHandler, chatHandler, telem, promet, logger.Logger, cfg)
+	if err != nil {
+		logger.Warn("register api failed", zap.Error(err))
+		return nil, fmt.Errorf("register api: %w", err)
+	}
 
 	return &Server{
-		e:         e,
-		logger:    logger,
-		telemetry: telem,
-		metrics:   promet,
-		cfg:       cfg,
-		closers:   closers,
+		e:          e,
+		grpcServer: grpcServer,
+		logger:     logger,
+		telemetry:  telem,
+		metrics:    promet,
+		cfg:        cfg,
+		closers:    closers,
 	}, nil
 }
 
 func (s *Server) Start() error {
-	port := s.cfg.HTTPPort
+	httpPort := s.cfg.HTTPPort
+	tcpPort := s.cfg.TCPPort
 
-	s.logger.Info("Starting server...", zap.String("port", port), zap.Time("start_time", time.Now()))
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%s", s.cfg.TCPPort))
+	if err != nil {
+		s.logger.Warn("Failed to create listener", zap.Error(err))
+		return fmt.Errorf("create listener: %w", err)
+	}
 
-	return s.e.Start(fmt.Sprintf(":%s", port))
+	s.closers = append(s.closers, listener.Close)
+
+	startGroup := errgroup.Group{}
+
+	startGroup.Go(func() error {
+		s.logger.Info("Starting HTTP server...", zap.String("port", httpPort))
+		err = s.e.Start(fmt.Sprintf(":%s", httpPort))
+		if err != nil {
+			s.logger.Warn("Failed to start HTTP server", zap.Error(err))
+			return fmt.Errorf("start HTTP server: %w", err)
+		}
+
+		return nil
+	})
+
+	startGroup.Go(func() error {
+		s.logger.Info("Starting TCP server...", zap.String("port", tcpPort))
+		err = s.grpcServer.Serve(listener)
+		if err != nil {
+			s.logger.Warn("Failed to start TCP server", zap.Error(err))
+			return fmt.Errorf("start TCP server: %w", err)
+		}
+
+		return nil
+	})
+
+	return startGroup.Wait()
 }
 
 func (s *Server) Shutdown(ctx context.Context) error {
@@ -131,7 +171,15 @@ func (s *Server) Shutdown(ctx context.Context) error {
 		s.logger.Warn("Failed to close closers", zap.Error(err))
 	}
 
-	return s.e.Shutdown(ctx)
+	err = s.e.Shutdown(ctx)
+	if err != nil {
+		s.logger.Warn("Failed to shutdown HTTP server", zap.Error(err))
+	}
+
+	s.grpcServer.GracefulStop()
+	s.logger.Info("Server shutdown completed")
+
+	return nil
 }
 
 func (s *Server) Close() error {

@@ -9,9 +9,10 @@ option go_package = "./grpc/v1";
 
 message User {
   string id = 1;
-  string slug = 2;
-  optional string avatar_url = 3;
+  string email = 2;
+  string username = 3;
   string full_name = 4;
-  optional string bio = 5;
-  google.protobuf.Timestamp created_at = 6;
+  optional string avatar_url = 5;
+  optional string bio = 6;
+  google.protobuf.Timestamp created_at = 7;
 }

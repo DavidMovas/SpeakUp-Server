@@ -1,4 +1,4 @@
-package models
+package helpers
 
 import "github.com/lithammer/shortuuid"
 

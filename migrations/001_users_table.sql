@@ -3,7 +3,7 @@
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(12) PRIMARY KEY,
     email VARCHAR(128) UNIQUE NOT NULL,
-    slug VARCHAR(32) UNIQUE NOT NULL,
+    username VARCHAR(32) UNIQUE NOT NULL,
     avatar_url VARCHAR(255),
     full_name VARCHAR(64) NOT NULL,
     bio VARCHAR(500),
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_slug ON users(slug);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 ---- create above / drop below ----

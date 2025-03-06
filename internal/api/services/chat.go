@@ -12,9 +12,9 @@ type ChatService struct {
 	logger *zap.Logger
 }
 
-func NewChatService(repo *stores.ChatsStore, logger *zap.Logger) *ChatService {
+func NewChatService(store *stores.ChatsStore, logger *zap.Logger) *ChatService {
 	return &ChatService{
-		store:  repo,
+		store:  store,
 		logger: logger,
 	}
 }

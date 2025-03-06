@@ -1,6 +1,6 @@
 -- Write your migrate up statements here
 
-CREATE TYPE attachments_type AS ENUM ('image', 'video', 'file', 'archive', 'archive');
+CREATE TYPE attachments_type AS ENUM ('image', 'video', 'audio', 'file', 'archive');
 
 CREATE TABLE IF NOT EXISTS attachments (
     id VARCHAR(12) PRIMARY KEY,
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS attachments (
     name VARCHAR(128) NOT NULL,
     type attachments_type NOT NULL,
     url VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP NOT NULL  DEFAULT NOW()
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_attachments_chat_id ON attachments(chat_id);

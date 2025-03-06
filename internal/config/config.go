@@ -23,6 +23,7 @@ type Config struct {
 	Local           bool          `env:"LOCAL" envDefault:"true"`
 	LogLevel        string        `env:"LOG_LEVEL" envDefault:"info"`
 	HTTPPort        string        `env:"HTTP_PORT" envDefault:"8080"`
+	TCPPort         string        `env:"TCP_PORT" envDefault:"8081"`
 	StartTimeout    time.Duration `env:"START_TIMEOUT" envDefault:"15s"`
 	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" envDefault:"15s"`
 	PostgresURL     string        `env:"POSTGRES_URL"`

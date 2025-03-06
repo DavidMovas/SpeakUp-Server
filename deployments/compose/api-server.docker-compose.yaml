@@ -12,6 +12,7 @@ services:
       LOCAL: ${LOCAL}
       LOG_LEVEL: ${LOG_LEVEL}
       HTTP_PORT: ${HTTP_PORT}
+      TCP_PORT: ${TCP_PORT}
       START_TIMEOUT: ${START_TIMEOUT}
       SHUTDOWN_TIMEOUT: ${SHUTDOWN_TIMEOUT}
       POSTGRES_URL: postgres://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
@@ -20,6 +21,7 @@ services:
       VERSION: ${VERSION}
     ports:
       - ${HTTP_PORT}:${HTTP_PORT}
+      - ${TCP_PORT}:${TCP_PORT}
     networks:
       - api-server-net
       - monitoring
