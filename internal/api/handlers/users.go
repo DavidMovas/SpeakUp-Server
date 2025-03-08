@@ -74,16 +74,22 @@ func (h *UsersHandler) Login(ctx context.Context, request *v1.LoginRequest) (*v1
 	res := &v1.LoginResponse{
 		AccessToken: token,
 		User: &v1.User{
-			Id:          user.ID,
-			Email:       user.Email,
-			Username:    user.Username,
-			FullName:    user.FullName,
-			AvatarUrl:   &user.AvatarURL,
-			Bio:         &user.Bio,
-			LastLoginAt: timestamppb.New(user.LastLoginAt),
-			CreatedAt:   timestamppb.New(user.CreatedAt),
-			UpdatedAt:   timestamppb.New(user.UpdatedAt),
+			Id:        user.ID,
+			Email:     user.Email,
+			Username:  user.Username,
+			FullName:  user.FullName,
+			AvatarUrl: user.AvatarURL,
+			Bio:       user.Bio,
+			CreatedAt: timestamppb.New(user.CreatedAt),
 		},
+	}
+
+	if user.LastLoginAt != nil {
+		res.User.LastLoginAt = timestamppb.New(*user.LastLoginAt)
+	}
+
+	if user.UpdatedAt != nil {
+		res.User.UpdatedAt = timestamppb.New(*user.UpdatedAt)
 	}
 
 	return res, nil

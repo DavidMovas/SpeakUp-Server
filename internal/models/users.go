@@ -6,12 +6,12 @@ type User struct {
 	ID          string
 	Email       string
 	Username    string
-	AvatarURL   string
+	AvatarURL   *string
 	FullName    string
-	Bio         string
-	LastLoginAt time.Time
+	Bio         *string
+	LastLoginAt *time.Time
 	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	UpdatedAt   *time.Time
 }
 
 type UserWithPassword struct {

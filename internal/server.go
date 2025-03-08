@@ -92,7 +92,7 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 	e.HideBanner = true
 	e.HidePort = true
 
-	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors.NewChainUnaryErrorInterceptor()))
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors.NewChainUnaryErrorInterceptor(logger.Logger)))
 
 	err = routes.RegisterHTTPAPI(e, telem, promet, logger.Logger, cfg)
 	if err != nil {

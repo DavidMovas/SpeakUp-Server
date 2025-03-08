@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -16,7 +17,7 @@ func (e *Error) Error() string {
 	return e.Message
 }
 
-func NewChainUnaryErrorInterceptor() grpc.UnaryServerInterceptor {
+func NewChainUnaryErrorInterceptor(logger *zap.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		resp, err = handler(ctx, req)
 		if err != nil {
@@ -25,6 +26,8 @@ func NewChainUnaryErrorInterceptor() grpc.UnaryServerInterceptor {
 			if !errors.As(err, &appError) {
 				appError = apperrors.InternalWithoutStackTrace(err)
 			}
+
+			logger.Warn("App error", zap.Error(appError))
 
 			return nil, appError
 		}
