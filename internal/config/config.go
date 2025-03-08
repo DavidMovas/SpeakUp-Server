@@ -28,6 +28,13 @@ type Config struct {
 	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" envDefault:"15s"`
 	PostgresURL     string        `env:"POSTGRES_URL"`
 	RedisURL        string        `env:"REDIS_URL"`
+	JWTConfig       JWTConfig     `envPrefix:"JWT_"`
 	TracerURL       string        `env:"TRACER_URL" envDefault:"http://localhost:14268/api/traces"`
 	Version         string        `env:"VERSION" envDefault:"0.0.1"`
+}
+
+type JWTConfig struct {
+	Secret            string        `env:"SECRET" envDefault:"secret"`
+	AccessExpiration  time.Duration `env:"ACCESS_EXPIRATION" envDefault:"24h"`
+	RefreshExpiration time.Duration `env:"REFRESH_EXPIRATION" envDefault:"168h"`
 }

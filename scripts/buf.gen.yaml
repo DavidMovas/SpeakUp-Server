@@ -3,6 +3,12 @@ plugins:
   - name: go
     out: ../internal/shared/grpc/v1
     opt: paths=source_relative
+  - name: go
+    out: ../../SpeakUp-Client/backend/shared/grpc/v1
+    opt: paths=source_relative
   - name: go-grpc
     out: ../internal/shared/grpc/v1
+    opt: paths=source_relative
+  - name: go-grpc
+    out: ../../SpeakUp-Client/backend/shared/grpc/v1
     opt: paths=source_relative

@@ -3,33 +3,40 @@ package error
 import (
 	"errors"
 	"fmt"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"runtime/debug"
 
 	"github.com/google/uuid"
 )
 
-type Code int
+type GrpcStatus interface {
+	GRPCStatus() *status.Status
+}
 
-const (
-	InternalCode Code = iota + 1
-	BadRequestCode
-	NotFoundCode
-	AlreadyExistsCode
-	UnauthorizedCode
-	ForbiddenCode
-	VersionMismatchCode
+var (
+	_ error      = (*Error)(nil)
+	_ GrpcStatus = (*Error)(nil)
 )
 
 var _ error = (*Error)(nil)
 
 type Error struct {
-	Code       Code
+	Code       codes.Code
 	StackTrace string
 	IncidentID string
 
 	innerError error
 	hiderError bool
 	message    string
+}
+
+func (e *Error) GRPCStatus() *status.Status {
+	return status.New(e.Code, e.message)
+}
+
+func (e *Error) ToGRPCError() error {
+	return status.New(e.Code, e.message).Err()
 }
 
 func (e *Error) Error() string {
@@ -72,7 +79,7 @@ func Internal(err error) *Error {
 }
 
 func InternalWithoutStackTrace(err error) *Error {
-	appErr := newHiddenError(err, InternalCode, "internal error")
+	appErr := newHiddenError(err, codes.Internal, "internal error")
 	appErr.IncidentID = uuid.New().String()
 	return appErr
 }
@@ -86,52 +93,52 @@ func EnsureInternal(err error) error {
 }
 
 func BadRequest(err error) *Error {
-	return newWrappedError(err, BadRequestCode)
+	return newWrappedError(err, codes.InvalidArgument)
 }
 
 func BadRequestHidden(err error, message string) *Error {
-	return newHiddenError(err, BadRequestCode, message)
+	return newHiddenError(err, codes.InvalidArgument, message)
 }
 
 func NotFound(subject, key string, value any) *Error {
-	return newError(NotFoundCode, fmt.Sprintf("%s %s: %v not found", subject, key, value))
+	return newError(codes.NotFound, fmt.Sprintf("%s %s: %v not found", subject, key, value))
 }
 
 func AlreadyExists(subject, key string, value any) *Error {
-	return newError(AlreadyExistsCode, fmt.Sprintf("%s %s: %v already extists", subject, key, value))
+	return newError(codes.AlreadyExists, fmt.Sprintf("%s %s: %v already extists", subject, key, value))
 }
 
 func Unauthorized(message string) *Error {
-	return newError(UnauthorizedCode, message)
+	return newError(codes.Unauthenticated, message)
 }
 
 func UnauthorizedHidden(err error, message string) *Error {
-	return newHiddenError(err, UnauthorizedCode, message)
+	return newHiddenError(err, codes.Unauthenticated, message)
 }
 
 func Forbidden(message string) *Error {
-	return newError(ForbiddenCode, message)
+	return newError(codes.PermissionDenied, message)
 }
 
 func VersionMismatch(subject, key string, value any, version int) *Error {
-	return newError(VersionMismatchCode, fmt.Sprintf("stale version %d for %s %s: %v", version, subject, key, value))
+	return newError(codes.ResourceExhausted, fmt.Sprintf("stale version %d for %s %s: %v", version, subject, key, value))
 }
 
-func newError(code Code, message string) *Error {
+func newError(code codes.Code, message string) *Error {
 	return &Error{
 		Code:    code,
 		message: message,
 	}
 }
 
-func newWrappedError(err error, code Code) *Error {
+func newWrappedError(err error, code codes.Code) *Error {
 	return &Error{
 		Code:       code,
 		innerError: err,
 	}
 }
 
-func newHiddenError(err error, code Code, message string) *Error {
+func newHiddenError(err error, code codes.Code, message string) *Error {
 	return &Error{
 		Code:       code,
 		message:    message,
@@ -140,7 +147,7 @@ func newHiddenError(err error, code Code, message string) *Error {
 	}
 }
 
-func Is(err error, code Code) bool {
+func Is(err error, code codes.Code) bool {
 	var appErr *Error
 	ok := errors.As(err, &appErr)
 	return ok && appErr.Code == code

@@ -6,10 +6,12 @@ import (
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/handlers"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/services"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/stores"
-	routes2 "github.com/DavidMovas/SpeakUp-Server/internal/routes"
+	"github.com/DavidMovas/SpeakUp-Server/internal/routes"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/clients"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/echox"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/helpers"
+	"github.com/DavidMovas/SpeakUp-Server/internal/utils/interceptors"
+	"github.com/DavidMovas/SpeakUp-Server/internal/utils/jwt"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/metrics"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/telemetry"
 	"go.opentelemetry.io/otel/sdk/metric"
@@ -27,7 +29,6 @@ import (
 
 type Server struct {
 	e          *echo.Echo
-	listener   net.Listener
 	grpcServer *grpc.Server
 	logger     *log.Logger
 	telemetry  *trace.TracerProvider
@@ -76,8 +77,10 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 
 	closers = append(closers, redis.Close)
 
+	jwtService := jwt.NewService(cfg.JWTConfig.Secret, cfg.JWTConfig.AccessExpiration, cfg.JWTConfig.RefreshExpiration)
+
 	usersStore := stores.NewUsersStore(postgres, logger.Logger)
-	usersService := services.NewUsersService(usersStore, logger.Logger)
+	usersService := services.NewUsersService(usersStore, jwtService, logger.Logger)
 	usersHandler := handlers.NewUsersHandler(usersService, logger.Logger)
 
 	chatStore := stores.NewChatsStore(postgres, redis, logger.Logger)
@@ -89,15 +92,15 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 	e.HideBanner = true
 	e.HidePort = true
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors.NewChainUnaryErrorInterceptor()))
 
-	err = routes2.RegisterHTTPAPI(e, telem, promet, logger.Logger, cfg)
+	err = routes.RegisterHTTPAPI(e, telem, promet, logger.Logger, cfg)
 	if err != nil {
 		logger.Warn("register api failed", zap.Error(err))
 		return nil, fmt.Errorf("register api: %w", err)
 	}
 
-	err = routes2.RegisterGRPCAPI(grpcServer, usersHandler, chatHandler, telem, promet, logger.Logger, cfg)
+	err = routes.RegisterGRPCAPI(grpcServer, usersHandler, chatHandler, telem, promet, logger.Logger, cfg)
 	if err != nil {
 		logger.Warn("register api failed", zap.Error(err))
 		return nil, fmt.Errorf("register api: %w", err)

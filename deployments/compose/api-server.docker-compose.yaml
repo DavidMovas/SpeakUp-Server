@@ -17,6 +17,9 @@ services:
       SHUTDOWN_TIMEOUT: ${SHUTDOWN_TIMEOUT}
       POSTGRES_URL: postgres://${DB_USERNAME}:${DB_PASSWORD}@postgres:5432/${DB_NAME}
       REDIS_URL: redis:6379
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION}
       TRACER_URL: ${TRACER_URL}
       VERSION: ${VERSION}
     ports:
@@ -58,6 +61,7 @@ services:
       timeout: 15s
 
   migrator:
+    container_name: api-server-postgres-migrator
     build:
       context: ../..
       dockerfile: ./deployments/docker/tern-migrator.dockerfile

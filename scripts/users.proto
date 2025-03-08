@@ -38,7 +38,7 @@ message LogoutRequest {}
 message LogoutResponse {}
 
 message GetUserRequest {
-  string slug = 1;
+  string username = 1;
 }
 message GetUserResponse {
   common.v1.User user = 1;

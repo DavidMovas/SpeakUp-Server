@@ -25,25 +25,29 @@ func NewUsersHandler(service *services.UsersService, logger *zap.Logger) *UsersH
 	}
 }
 
-func (u *UsersHandler) Register(ctx context.Context, request *v1.RegisterRequest) (*v1.RegisterResponse, error) {
+func (h *UsersHandler) Register(ctx context.Context, request *v1.RegisterRequest) (*v1.RegisterResponse, error) {
 	req, err := requests.MakeRequest[requests.CreateUserRequest](request)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := u.service.CreateUser(ctx, req)
+	user, err := h.service.CreateUser(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := h.service.GenerateAccessToken(user.ID)
 	if err != nil {
 		return nil, err
 	}
 
 	res := &v1.RegisterResponse{
-		AccessToken: "token",
+		AccessToken: token,
 		User: &v1.User{
 			Id:        user.ID,
 			Email:     user.Email,
 			Username:  user.Username,
 			FullName:  user.FullName,
-			AvatarUrl: &user.AvatarURL,
 			CreatedAt: timestamppb.New(user.CreatedAt),
 		},
 	}
@@ -51,17 +55,46 @@ func (u *UsersHandler) Register(ctx context.Context, request *v1.RegisterRequest
 	return res, nil
 }
 
-func (u *UsersHandler) Login(ctx context.Context, request *v1.LoginRequest) (*v1.LoginResponse, error) {
+func (h *UsersHandler) Login(ctx context.Context, request *v1.LoginRequest) (*v1.LoginResponse, error) {
+	req, err := requests.MakeRequest[requests.GetUserByEmailRequest](request)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := h.service.GetUserByEmail(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := h.service.GenerateAccessToken(user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &v1.LoginResponse{
+		AccessToken: token,
+		User: &v1.User{
+			Id:          user.ID,
+			Email:       user.Email,
+			Username:    user.Username,
+			FullName:    user.FullName,
+			AvatarUrl:   &user.AvatarURL,
+			Bio:         &user.Bio,
+			LastLoginAt: timestamppb.New(user.LastLoginAt),
+			CreatedAt:   timestamppb.New(user.CreatedAt),
+			UpdatedAt:   timestamppb.New(user.UpdatedAt),
+		},
+	}
+
+	return res, nil
+}
+
+func (h *UsersHandler) Logout(ctx context.Context, request *v1.LogoutRequest) (*v1.LogoutResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (u *UsersHandler) Logout(ctx context.Context, request *v1.LogoutRequest) (*v1.LogoutResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (u *UsersHandler) GetUser(ctx context.Context, request *v1.GetUserRequest) (*v1.GetUserResponse, error) {
+func (h *UsersHandler) GetUser(ctx context.Context, request *v1.GetUserRequest) (*v1.GetUserResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }

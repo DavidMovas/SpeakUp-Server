@@ -3,6 +3,7 @@ package echox
 import (
 	"errors"
 	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
+	"google.golang.org/grpc/codes"
 	"net/http"
 
 	"github.com/DavidMovas/SpeakUp-Server/contracts"
@@ -32,7 +33,7 @@ func NewErrorHandler(logger *zap.Logger) func(err error, c echo.Context) {
 			IncidentID: appError.IncidentID,
 		}
 
-		if appError.Code == apperrors.InternalCode {
+		if appError.Code == codes.Internal {
 			logger.Error("server error",
 				zap.String("message", err.Error()),
 				zap.String("incident_id", appError.IncidentID),
@@ -50,19 +51,25 @@ func NewErrorHandler(logger *zap.Logger) func(err error, c echo.Context) {
 	}
 }
 
-func toHTTPStatus(code apperrors.Code) int {
+func toHTTPStatus(code codes.Code) int {
 	switch code {
-	case apperrors.InternalCode:
+	case codes.Internal:
 		return http.StatusInternalServerError
-	case apperrors.BadRequestCode:
+	case codes.InvalidArgument:
 		return http.StatusBadRequest
-	case apperrors.NotFoundCode:
+	case codes.NotFound:
 		return http.StatusNotFound
-	case apperrors.UnauthorizedCode:
-		return http.StatusUnauthorized
-	case apperrors.ForbiddenCode:
+	case codes.AlreadyExists:
+		return http.StatusConflict
+	case codes.PermissionDenied:
 		return http.StatusForbidden
-	case apperrors.AlreadyExistsCode, apperrors.VersionMismatchCode:
+	case codes.Unauthenticated:
+		return http.StatusUnauthorized
+	case codes.ResourceExhausted:
+		return http.StatusTooManyRequests
+	case codes.FailedPrecondition:
+		return http.StatusBadRequest
+	case codes.Aborted:
 		return http.StatusConflict
 	default:
 		return http.StatusInternalServerError
