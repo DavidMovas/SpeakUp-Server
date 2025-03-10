@@ -14,9 +14,11 @@ CREATE TABLE IF NOT EXISTS attachments (
 
 CREATE INDEX IF NOT EXISTS idx_attachments_chat_id ON attachments(chat_id);
 CREATE INDEX IF NOT EXISTS idx_attachments_user_id ON attachments(user_id);
+CREATE INDEX IF NOT EXISTS idx_attachments_chat_id_created_at ON attachments(chat_id, created_at);
 
 ---- create above / drop below ----
 
+DROP INDEX IF EXISTS idx_attachments_chat_id_created_at;
 DROP INDEX IF EXISTS idx_attachments_chat_id;
 DROP INDEX IF EXISTS idx_attachments_user_id;
 

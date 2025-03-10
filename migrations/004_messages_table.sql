@@ -10,9 +10,11 @@ CREATE TABLE IF NOT EXISTS messages (
 
 CREATE INDEX idx_messages_chat_id ON messages(chat_id);
 CREATE INDEX idx_messages_user_id ON messages(user_id);
+CREATE INDEX idx_messages_chat_id_created_at ON messages(chat_id, created_at);
 
 ---- create above / drop below ----
 
+DROP INDEX IF EXISTS idx_messages_chat_id_created_at;
 DROP INDEX IF EXISTS idx_messages_chat_id;
 DROP INDEX IF EXISTS idx_messages_user_id;
 

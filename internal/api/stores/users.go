@@ -93,3 +93,37 @@ func (s *UsersStore) GetUserByEmail(ctx context.Context, request *requests.GetUs
 
 	return &user, nil
 }
+
+func (s *UsersStore) GetUserByUsername(ctx context.Context, request *requests.GetUserByUsernameRequest) (*models.User, error) {
+	builder := dbx.StatementBuilder.
+		Select("id", "email", "username", "avatar_url", "full_name", "bio", "last_login_at", "created_at").
+		From("users").
+		Where(squirrel.Eq{"username": request.Username})
+
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, apperrors.Internal(err)
+	}
+
+	var user models.User
+	err = s.db.QueryRow(ctx, query, args...).
+		Scan(
+			&user.ID,
+			&user.Email,
+			&user.Username,
+			&user.AvatarURL,
+			&user.FullName,
+			&user.Bio,
+			&user.LastLoginAt,
+			&user.CreatedAt,
+		)
+
+	switch {
+	case dbx.IsNoRows(err):
+		return nil, apperrors.NotFound("user", "username", request.Username)
+	case err != nil:
+		return nil, apperrors.Internal(err)
+	}
+
+	return &user, nil
+}

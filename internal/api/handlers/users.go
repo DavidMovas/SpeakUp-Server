@@ -95,12 +95,36 @@ func (h *UsersHandler) Login(ctx context.Context, request *v1.LoginRequest) (*v1
 	return res, nil
 }
 
-func (h *UsersHandler) Logout(ctx context.Context, request *v1.LogoutRequest) (*v1.LogoutResponse, error) {
-	//TODO implement me
+func (h *UsersHandler) Logout(_ context.Context, _ *v1.LogoutRequest) (*v1.LogoutResponse, error) {
 	panic("implement me")
 }
 
 func (h *UsersHandler) GetUser(ctx context.Context, request *v1.GetUserRequest) (*v1.GetUserResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	req, err := requests.MakeRequest[requests.GetUserByUsernameRequest](request)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := h.service.GetUserByUsername(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &v1.GetUserResponse{
+		User: &v1.User{
+			Id:        user.ID,
+			Email:     user.Email,
+			Username:  user.Username,
+			FullName:  user.FullName,
+			AvatarUrl: user.AvatarURL,
+			Bio:       user.Bio,
+			CreatedAt: timestamppb.New(user.CreatedAt),
+		},
+	}
+
+	if user.LastLoginAt != nil {
+		res.User.LastLoginAt = timestamppb.New(*user.LastLoginAt)
+	}
+
+	return res, nil
 }

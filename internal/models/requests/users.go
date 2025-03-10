@@ -19,10 +19,10 @@ type CreateUserRequest struct {
 func (r CreateUserRequest) make(req *v1.RegisterRequest) (*CreateUserRequest, error) {
 	id := helpers.GenerateID()
 	r.ID = id
-	r.Username = random.GenerateRandomUsername(req.FullName)
-	r.Email = req.Email
-	r.FullName = req.FullName
-	r.Password = req.Password
+	r.Username = random.GenerateRandomUsername(req.GetFullName())
+	r.Email = req.GetEmail()
+	r.FullName = req.GetFullName()
+	r.Password = req.GetPassword()
 
 	return &r, nil
 }
@@ -35,8 +35,20 @@ type GetUserByEmailRequest struct {
 }
 
 func (r GetUserByEmailRequest) make(req *v1.LoginRequest) (*GetUserByEmailRequest, error) {
-	r.Email = req.Email
-	r.Password = req.Password
+	r.Email = req.GetEmail()
+	r.Password = req.GetPassword()
+
+	return &r, nil
+}
+
+var _ requestable[GetUserByUsernameRequest, *v1.GetUserRequest] = (*GetUserByUsernameRequest)(nil)
+
+type GetUserByUsernameRequest struct {
+	Username string
+}
+
+func (r GetUserByUsernameRequest) make(req *v1.GetUserRequest) (*GetUserByUsernameRequest, error) {
+	r.Username = req.GetUsername()
 
 	return &r, nil
 }

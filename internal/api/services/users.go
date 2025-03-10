@@ -63,3 +63,12 @@ func (s *UsersService) GetUserByEmail(ctx context.Context, request *requests.Get
 
 	return user.User, nil
 }
+
+func (s *UsersService) GetUserByUsername(ctx context.Context, request *requests.GetUserByUsernameRequest) (*models.User, error) {
+	user, err := s.store.GetUserByUsername(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
