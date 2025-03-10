@@ -3,15 +3,16 @@ package internal
 import (
 	"context"
 	"fmt"
+	pipe "github.com/DavidMovas/SpeakUp-Server/internal/shared/pipe"
 	"net"
 	"time"
 
-	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/handler"
-	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/service"
-	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/store"
-	handler2 "github.com/DavidMovas/SpeakUp-Server/internal/api/users/handler"
-	service2 "github.com/DavidMovas/SpeakUp-Server/internal/api/users/service"
-	store2 "github.com/DavidMovas/SpeakUp-Server/internal/api/users/store"
+	chatHnd "github.com/DavidMovas/SpeakUp-Server/internal/api/chat/handler"
+	chatSrv "github.com/DavidMovas/SpeakUp-Server/internal/api/chat/service"
+	chatStr "github.com/DavidMovas/SpeakUp-Server/internal/api/chat/store"
+	usersHnd "github.com/DavidMovas/SpeakUp-Server/internal/api/users/handler"
+	usersSrv "github.com/DavidMovas/SpeakUp-Server/internal/api/users/service"
+	usersStr "github.com/DavidMovas/SpeakUp-Server/internal/api/users/store"
 	"github.com/DavidMovas/SpeakUp-Server/internal/routes"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/clients"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/echox"
@@ -83,13 +84,16 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 
 	jwtService := jwt.NewService(cfg.JWTConfig.Secret, cfg.JWTConfig.AccessExpiration, cfg.JWTConfig.RefreshExpiration)
 
-	usersStore := store2.NewUsersStore(postgres, logger.Logger)
-	usersService := service2.NewUsersService(usersStore, jwtService, logger.Logger)
-	usersHandler := handler2.NewUsersHandler(usersService, logger.Logger)
+	usersStore := usersStr.NewUsersStore(postgres, logger.Logger)
+	chatStore := chatStr.NewChatsStore(postgres, redis, logger.Logger)
 
-	chatStore := store.NewChatsStore(postgres, redis, logger.Logger)
-	chatService := service.NewChatService(chatStore, logger.Logger)
-	chatHandler := handler.NewChatHandler(chatService, logger.Logger)
+	usersService := usersSrv.NewUsersService(usersStore, jwtService, logger.Logger)
+	chatService := chatSrv.NewChatService(chatStore, logger.Logger)
+
+	p := pipe.NewPipe(chatService, usersService)
+
+	usersHandler := usersHnd.NewUsersHandler(usersService, p, logger.Logger)
+	chatHandler := chatHnd.NewChatHandler(chatService, p, logger.Logger)
 
 	e := echo.New()
 	e.HTTPErrorHandler = echox.NewErrorHandler(logger.Logger)

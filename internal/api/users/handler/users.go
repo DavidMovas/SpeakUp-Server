@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"github.com/DavidMovas/SpeakUp-Server/internal/shared/pipe"
 
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/users/service"
 	"github.com/DavidMovas/SpeakUp-Server/internal/models/requests"
@@ -14,14 +15,16 @@ var _ v1.UsersServiceServer = (*UsersHandler)(nil)
 
 type UsersHandler struct {
 	service *service.UsersService
+	pipe    *pipe.Pipe
 	logger  *zap.Logger
 
 	v1.UnimplementedUsersServiceServer
 }
 
-func NewUsersHandler(service *service.UsersService, logger *zap.Logger) *UsersHandler {
+func NewUsersHandler(service *service.UsersService, pipe *pipe.Pipe, logger *zap.Logger) *UsersHandler {
 	return &UsersHandler{
 		service: service,
+		pipe:    pipe,
 		logger:  logger,
 	}
 }
@@ -97,7 +100,7 @@ func (h *UsersHandler) Login(ctx context.Context, request *v1.LoginRequest) (*v1
 }
 
 func (h *UsersHandler) Logout(_ context.Context, _ *v1.LogoutRequest) (*v1.LogoutResponse, error) {
-	panic("implement me")
+	return nil, nil
 }
 
 func (h *UsersHandler) GetUser(ctx context.Context, request *v1.GetUserRequest) (*v1.GetUserResponse, error) {
@@ -111,6 +114,8 @@ func (h *UsersHandler) GetUser(ctx context.Context, request *v1.GetUserRequest) 
 		return nil, err
 	}
 
+	commonChatID, _ := h.pipe.Chat().GetPrivateChatIDBetweenUsers(ctx, request.GetRequesterID(), user.ID)
+
 	res := &v1.GetUserResponse{
 		User: &v1.User{
 			Id:        user.ID,
@@ -121,6 +126,10 @@ func (h *UsersHandler) GetUser(ctx context.Context, request *v1.GetUserRequest) 
 			Bio:       user.Bio,
 			CreatedAt: timestamppb.New(user.CreatedAt),
 		},
+	}
+
+	if commonChatID != "" {
+		res.CommonChatId = &commonChatID
 	}
 
 	if user.LastLoginAt != nil {

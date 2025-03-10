@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"github.com/DavidMovas/SpeakUp-Server/internal/shared/pipe"
 
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/service"
 	"github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
@@ -13,14 +14,16 @@ var _ v1.ChatServiceServer = (*ChatHandler)(nil)
 
 type ChatHandler struct {
 	service *service.ChatService
+	pipe    *pipe.Pipe
 	logger  *zap.Logger
 
 	v1.UnimplementedChatServiceServer
 }
 
-func NewChatHandler(service *service.ChatService, logger *zap.Logger) *ChatHandler {
+func NewChatHandler(service *service.ChatService, pipe *pipe.Pipe, logger *zap.Logger) *ChatHandler {
 	return &ChatHandler{
 		service: service,
+		pipe:    pipe,
 		logger:  logger,
 	}
 }

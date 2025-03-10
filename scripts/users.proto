@@ -38,8 +38,10 @@ message LogoutRequest {}
 message LogoutResponse {}
 
 message GetUserRequest {
-  string username = 1;
+  string requesterID = 1;
+  string username = 2;
 }
 message GetUserResponse {
   common.v1.User user = 1;
+  optional string common_chat_id = 2;
 }
