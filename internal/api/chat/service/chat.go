@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/store"
 	chat "github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
 	"go.uber.org/zap"

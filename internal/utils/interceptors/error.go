@@ -3,6 +3,7 @@ package interceptors
 import (
 	"context"
 	"errors"
+
 	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"

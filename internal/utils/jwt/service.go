@@ -4,10 +4,11 @@ import (
 	crand "crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 	"math/rand"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 const (

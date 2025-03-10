@@ -2,10 +2,11 @@ package clients
 
 import (
 	"context"
-	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"net"
 	"time"
+
+	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func NewPostgresClient(ctx context.Context, url string, options *PostgresOptions) (*pgxpool.Pool, error) {

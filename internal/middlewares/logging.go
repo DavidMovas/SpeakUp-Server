@@ -1,9 +1,10 @@
 package middlewares
 
 import (
+	"time"
+
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
-	"time"
 )
 
 func NewLoggingMiddleware(logger *zap.Logger) func(next echo.HandlerFunc) echo.HandlerFunc {

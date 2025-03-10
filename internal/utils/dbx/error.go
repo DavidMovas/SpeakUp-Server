@@ -2,10 +2,11 @@ package dbx
 
 import (
 	"errors"
+	"strings"
+
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"strings"
 )
 
 func IsUniqueViolation(err error, name string) bool {

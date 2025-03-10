@@ -12,7 +12,6 @@ import (
 )
 
 func RegisterGRPCAPI(grpcServer *grpc.Server, usersHandler *handler2.UsersHandler, chatHandler *handler.ChatHandler, _ *trace.TracerProvider, _ *metric.MeterProvider, _ *zap.Logger, _ *config.Config) error {
-
 	v1.RegisterUsersServiceServer(grpcServer, usersHandler)
 	v1.RegisterChatServiceServer(grpcServer, chatHandler)
 

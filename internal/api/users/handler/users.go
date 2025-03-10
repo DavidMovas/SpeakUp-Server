@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/users/service"
 	"github.com/DavidMovas/SpeakUp-Server/internal/models/requests"
 	"github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"

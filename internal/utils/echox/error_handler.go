@@ -2,9 +2,10 @@ package echox
 
 import (
 	"errors"
+	"net/http"
+
 	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
 	"google.golang.org/grpc/codes"
-	"net/http"
 
 	"github.com/DavidMovas/SpeakUp-Server/contracts"
 	"github.com/labstack/echo/v4"

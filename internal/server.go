@@ -3,6 +3,9 @@ package internal
 import (
 	"context"
 	"fmt"
+	"net"
+	"time"
+
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/handler"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/service"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/store"
@@ -21,8 +24,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
-	"net"
-	"time"
 
 	"github.com/DavidMovas/SpeakUp-Server/internal/config"
 	"github.com/DavidMovas/SpeakUp-Server/internal/log"

@@ -3,9 +3,10 @@ package error
 import (
 	"errors"
 	"fmt"
+	"runtime/debug"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"runtime/debug"
 
 	"github.com/google/uuid"
 )
