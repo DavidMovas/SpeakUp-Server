@@ -2,17 +2,20 @@ package handler
 
 import (
 	"context"
-	"github.com/DavidMovas/SpeakUp-Server/internal/shared/pipe"
-	"google.golang.org/grpc"
-
+	"errors"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/hub"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/service"
 	"github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
+	"github.com/DavidMovas/SpeakUp-Server/internal/shared/pipe"
+	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
 var _ v1.ChatServiceServer = (*ChatHandler)(nil)
 
 type ChatHandler struct {
+	hub     *hub.Hub
 	service *service.ChatService
 	pipe    *pipe.Pipe
 	logger  *zap.Logger
@@ -20,8 +23,9 @@ type ChatHandler struct {
 	v1.UnimplementedChatServiceServer
 }
 
-func NewChatHandler(service *service.ChatService, pipe *pipe.Pipe, logger *zap.Logger) *ChatHandler {
+func NewChatHandler(hub *hub.Hub, service *service.ChatService, pipe *pipe.Pipe, logger *zap.Logger) *ChatHandler {
 	return &ChatHandler{
+		hub:     hub,
 		service: service,
 		pipe:    pipe,
 		logger:  logger,
@@ -39,10 +43,19 @@ func (h *ChatHandler) CreateChat(ctx context.Context, request *v1.CreateChatRequ
 	return result, nil
 }
 
-func (h *ChatHandler) Connect(stream grpc.BidiStreamingServer[v1.ChatMessage, v1.ChatMessage]) error {
-	panic("implement me")
+func (h *ChatHandler) Connect(stream grpc.BidiStreamingServer[v1.ConnectRequest, v1.ConnectResponse]) error {
+	msg, err := stream.Recv()
+	if err != nil {
+		return err
+	}
+
+	if _, ok := msg.Payload.(*v1.ConnectRequest_JointChat); ok {
+		h.hub.RegisterStream(msg.GetJointChat().GetUserId(), stream)
+	}
+
+	return apperrors.Internal(errors.New("invalid steam payload"))
 }
 
-func (h *ChatHandler) GetChatHistory(ctx context.Context, request *v1.GetChatHistoryRequest) (*v1.GetChatHistoryResponse, error) {
+func (h *ChatHandler) GetChatHistory(_ context.Context, _ *v1.GetChatHistoryRequest) (*v1.GetChatHistoryResponse, error) {
 	panic("implement me")
 }

@@ -9,7 +9,7 @@ option go_package = "./grpc/v1";
 
 service ChatService {
   rpc CreateChat(CreateChatRequest) returns (CreateChatResponse);
-  rpc Connect(stream ChatMessage) returns (stream ChatMessage);
+  rpc Connect(stream ConnectRequest) returns (stream ConnectResponse);
   rpc GetChatHistory(GetChatHistoryRequest) returns (GetChatHistoryResponse);
 }
 
@@ -35,11 +35,35 @@ message CreateChatResponse {
   string chat_id = 1;
 }
 
-message ChatMessage {
+message ConnectRequest {
+  oneof payload {
+    JoinChat joint_chat = 1;
+    Message message = 2;
+  }
+
+  message JoinChat {
+    string chat_id = 1;
+    string user_id = 2;
+    google.protobuf.Timestamp last_read_at = 3;
+  }
+}
+
+message ConnectResponse {
+  oneof payload {
+    Message message = 1;
+    MessageList message_list = 2;
+  }
+}
+
+message Message {
   string chat_id = 1;
   string sender_id = 2;
   string message = 3;
-  string created_at = 4;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+message MessageList {
+  repeated Message messages = 1;
 }
 
 message GetChatHistoryRequest {
@@ -49,6 +73,6 @@ message GetChatHistoryRequest {
 }
 
 message GetChatHistoryResponse {
-  repeated ChatMessage messages = 1;
+  repeated Message messages = 1;
 }
 

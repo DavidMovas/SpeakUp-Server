@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/hub"
 	pipe "github.com/DavidMovas/SpeakUp-Server/internal/shared/pipe"
 	"net"
 	"time"
@@ -35,6 +36,7 @@ import (
 type Server struct {
 	e          *echo.Echo
 	grpcServer *grpc.Server
+	hubStop    context.CancelFunc
 	logger     *log.Logger
 	telemetry  *trace.TracerProvider
 	metrics    *metric.MeterProvider
@@ -92,8 +94,11 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 
 	p := pipe.NewPipe(chatService, usersService)
 
+	hubCtx, hubCancel := context.WithCancel(context.Background())
+	h := hub.NewHub(hubCtx, nil, nil, logger.Logger)
+
 	usersHandler := usersHnd.NewUsersHandler(usersService, p, logger.Logger)
-	chatHandler := chatHnd.NewChatHandler(chatService, p, logger.Logger)
+	chatHandler := chatHnd.NewChatHandler(h, chatService, p, logger.Logger)
 
 	e := echo.New()
 	e.HTTPErrorHandler = echox.NewErrorHandler(logger.Logger)
@@ -105,18 +110,21 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 	err = routes.RegisterHTTPAPI(e, telem, promet, logger.Logger, cfg)
 	if err != nil {
 		logger.Warn("register api failed", zap.Error(err))
+		hubCancel()
 		return nil, fmt.Errorf("register api: %w", err)
 	}
 
 	err = routes.RegisterGRPCAPI(grpcServer, usersHandler, chatHandler, telem, promet, logger.Logger, cfg)
 	if err != nil {
 		logger.Warn("register api failed", zap.Error(err))
+		hubCancel()
 		return nil, fmt.Errorf("register api: %w", err)
 	}
 
 	return &Server{
 		e:          e,
 		grpcServer: grpcServer,
+		hubStop:    hubCancel,
 		logger:     logger,
 		telemetry:  telem,
 		metrics:    promet,
@@ -176,6 +184,8 @@ func (s *Server) Shutdown(ctx context.Context) error {
 	if err != nil {
 		s.logger.Warn("Failed to shutdown metrics server", zap.Error(err))
 	}
+
+	s.hubStop()
 
 	err = s.Close()
 	if err != nil {

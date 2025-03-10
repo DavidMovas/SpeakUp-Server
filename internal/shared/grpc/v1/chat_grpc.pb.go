@@ -22,7 +22,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	ChatService_CreateChat_FullMethodName     = "/chat.v1.ChatService/CreateChat"
-	ChatService_JoinChat_FullMethodName       = "/chat.v1.ChatService/JoinChat"
+	ChatService_Connect_FullMethodName        = "/chat.v1.ChatService/Connect"
 	ChatService_GetChatHistory_FullMethodName = "/chat.v1.ChatService/GetChatHistory"
 )
 
@@ -31,7 +31,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ChatServiceClient interface {
 	CreateChat(ctx context.Context, in *CreateChatRequest, opts ...grpc.CallOption) (*CreateChatResponse, error)
-	JoinChat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ChatMessage, ChatMessage], error)
+	Connect(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ConnectRequest, ConnectResponse], error)
 	GetChatHistory(ctx context.Context, in *GetChatHistoryRequest, opts ...grpc.CallOption) (*GetChatHistoryResponse, error)
 }
 
@@ -53,18 +53,18 @@ func (c *chatServiceClient) CreateChat(ctx context.Context, in *CreateChatReques
 	return out, nil
 }
 
-func (c *chatServiceClient) JoinChat(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ChatMessage, ChatMessage], error) {
+func (c *chatServiceClient) Connect(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[ConnectRequest, ConnectResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &ChatService_ServiceDesc.Streams[0], ChatService_JoinChat_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &ChatService_ServiceDesc.Streams[0], ChatService_Connect_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[ChatMessage, ChatMessage]{ClientStream: stream}
+	x := &grpc.GenericClientStream[ConnectRequest, ConnectResponse]{ClientStream: stream}
 	return x, nil
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ChatService_JoinChatClient = grpc.BidiStreamingClient[ChatMessage, ChatMessage]
+type ChatService_ConnectClient = grpc.BidiStreamingClient[ConnectRequest, ConnectResponse]
 
 func (c *chatServiceClient) GetChatHistory(ctx context.Context, in *GetChatHistoryRequest, opts ...grpc.CallOption) (*GetChatHistoryResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -81,7 +81,7 @@ func (c *chatServiceClient) GetChatHistory(ctx context.Context, in *GetChatHisto
 // for forward compatibility.
 type ChatServiceServer interface {
 	CreateChat(context.Context, *CreateChatRequest) (*CreateChatResponse, error)
-	JoinChat(grpc.BidiStreamingServer[ChatMessage, ChatMessage]) error
+	Connect(grpc.BidiStreamingServer[ConnectRequest, ConnectResponse]) error
 	GetChatHistory(context.Context, *GetChatHistoryRequest) (*GetChatHistoryResponse, error)
 	mustEmbedUnimplementedChatServiceServer()
 }
@@ -96,8 +96,8 @@ type UnimplementedChatServiceServer struct{}
 func (UnimplementedChatServiceServer) CreateChat(context.Context, *CreateChatRequest) (*CreateChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateChat not implemented")
 }
-func (UnimplementedChatServiceServer) JoinChat(grpc.BidiStreamingServer[ChatMessage, ChatMessage]) error {
-	return status.Errorf(codes.Unimplemented, "method JoinChat not implemented")
+func (UnimplementedChatServiceServer) Connect(grpc.BidiStreamingServer[ConnectRequest, ConnectResponse]) error {
+	return status.Errorf(codes.Unimplemented, "method Connect not implemented")
 }
 func (UnimplementedChatServiceServer) GetChatHistory(context.Context, *GetChatHistoryRequest) (*GetChatHistoryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetChatHistory not implemented")
@@ -141,12 +141,12 @@ func _ChatService_CreateChat_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ChatService_JoinChat_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(ChatServiceServer).JoinChat(&grpc.GenericServerStream[ChatMessage, ChatMessage]{ServerStream: stream})
+func _ChatService_Connect_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(ChatServiceServer).Connect(&grpc.GenericServerStream[ConnectRequest, ConnectResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type ChatService_JoinChatServer = grpc.BidiStreamingServer[ChatMessage, ChatMessage]
+type ChatService_ConnectServer = grpc.BidiStreamingServer[ConnectRequest, ConnectResponse]
 
 func _ChatService_GetChatHistory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetChatHistoryRequest)
@@ -184,8 +184,8 @@ var ChatService_ServiceDesc = grpc.ServiceDesc{
 	},
 	Streams: []grpc.StreamDesc{
 		{
-			StreamName:    "JoinChat",
-			Handler:       _ChatService_JoinChat_Handler,
+			StreamName:    "Connect",
+			Handler:       _ChatService_Connect_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
