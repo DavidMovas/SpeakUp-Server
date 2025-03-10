@@ -2,10 +2,10 @@ package service
 
 import (
 	"context"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/users/models"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/users/models/requests"
 
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/users/store"
-	"github.com/DavidMovas/SpeakUp-Server/internal/models"
-	"github.com/DavidMovas/SpeakUp-Server/internal/models/requests"
 	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/jwt"
 	"go.uber.org/zap"

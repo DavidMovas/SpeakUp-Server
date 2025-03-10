@@ -8,51 +8,47 @@ package chat.v1;
 option go_package = "./grpc/v1";
 
 service ChatService {
-  rpc CreateRoom(CreateRoomRequest) returns (CreateRoomResponse);
-  rpc JoinRoom(stream JoinRoomRequest) returns (stream JoinRoomResponse);
+  rpc CreateChat(CreateChatRequest) returns (CreateChatResponse);
+  rpc JoinChat(stream ChatMessage) returns (stream ChatMessage);
+  rpc GetChatHistory(GetChatHistoryRequest) returns (GetChatHistoryResponse);
 }
 
-message CreateRoomRequest {
-  string user_id = 1;
-  string name = 2;
-}
-
-message CreateRoomResponse {
-  string room_id = 1;
-}
-
-message JoinRoomRequest {
+message CreateChatRequest {
   oneof payload {
-    JoinRoom join_room = 1;
-    SendMessage send_message = 2;
+      PrivateChat private_chat = 1;
+      GroupChat group_chat = 2;
   }
 
-  message JoinRoom {
-    string room_id = 1;
-    string user_id = 2;
-    string last_read_message_id = 3;
+  message PrivateChat {
+    string initiator_id = 1;
+    string member_id = 2;
   }
 
-  message SendMessage {
-    string text = 1;
-  }
-}
-
-message JoinRoomResponse {
-  oneof payload {
-    Message message = 1;
-    MessageList message_list = 2;
+  message GroupChat {
+    string initiator_id = 1;
+    repeated string members_ids = 2;
+    string name = 3;
   }
 }
 
-message Message {
-  string id = 1;
+message CreateChatResponse {
+  string chat_id = 1;
+}
+
+message ChatMessage {
+  string chat_id = 1;
+  string sender_id = 2;
+  string message = 3;
+  string created_at = 4;
+}
+
+message GetChatHistoryRequest {
+  string chat_id = 1;
   string user_id = 2;
-  string room_id = 3;
-  string text = 4;
-  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp last_read_at = 3;
 }
 
-message MessageList {
-  repeated Message messages = 1;
+message GetChatHistoryResponse {
+  repeated ChatMessage messages = 1;
 }
+

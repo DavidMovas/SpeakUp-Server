@@ -2,10 +2,11 @@ package handler
 
 import (
 	"context"
+	requests2 "github.com/DavidMovas/SpeakUp-Server/internal/api/users/models/requests"
+	"github.com/DavidMovas/SpeakUp-Server/internal/shared/model"
 	"github.com/DavidMovas/SpeakUp-Server/internal/shared/pipe"
 
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/users/service"
-	"github.com/DavidMovas/SpeakUp-Server/internal/models/requests"
 	"github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -30,7 +31,7 @@ func NewUsersHandler(service *service.UsersService, pipe *pipe.Pipe, logger *zap
 }
 
 func (h *UsersHandler) Register(ctx context.Context, request *v1.RegisterRequest) (*v1.RegisterResponse, error) {
-	req, err := requests.MakeRequest[requests.CreateUserRequest](request)
+	req, err := model.MakeRequest[requests2.CreateUserRequest](request)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +61,7 @@ func (h *UsersHandler) Register(ctx context.Context, request *v1.RegisterRequest
 }
 
 func (h *UsersHandler) Login(ctx context.Context, request *v1.LoginRequest) (*v1.LoginResponse, error) {
-	req, err := requests.MakeRequest[requests.GetUserByEmailRequest](request)
+	req, err := model.MakeRequest[requests2.GetUserByEmailRequest](request)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +105,7 @@ func (h *UsersHandler) Logout(_ context.Context, _ *v1.LogoutRequest) (*v1.Logou
 }
 
 func (h *UsersHandler) GetUser(ctx context.Context, request *v1.GetUserRequest) (*v1.GetUserResponse, error) {
-	req, err := requests.MakeRequest[requests.GetUserByUsernameRequest](request)
+	req, err := model.MakeRequest[requests2.GetUserByUsernameRequest](request)
 	if err != nil {
 		return nil, err
 	}

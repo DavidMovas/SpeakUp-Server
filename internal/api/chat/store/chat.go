@@ -2,12 +2,15 @@ package store
 
 import (
 	"context"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/models/requests"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/dbx"
 	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
 	"github.com/Masterminds/squirrel"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
+	"time"
 )
 
 type ChatsStore struct {
@@ -22,6 +25,96 @@ func NewChatsStore(db *pgxpool.Pool, redis *redis.Client, logger *zap.Logger) *C
 		redis:  redis,
 		logger: logger,
 	}
+}
+
+func (s *ChatsStore) CreatePrivateChat(ctx context.Context, request *requests.CreatePrivateChatRequest) (string, error) {
+	chatBuilder := dbx.StatementBuilder.
+		Insert("chats").
+		Columns("id", "slug", "name", "type", "created_at").
+		Values(request.ID, request.Slug, request.Name, request.Type, request.CreatedAt)
+
+	query, args, err := chatBuilder.ToSql()
+
+	err = dbx.InTransaction(ctx, s.db, func(ctx context.Context, tx pgx.Tx) error {
+		_, err = s.db.Exec(ctx, query, args...)
+
+		if err != nil {
+			return apperrors.Internal(err)
+		}
+
+		now := time.Now()
+
+		relations := []*chatServiceRelation{
+			{chatID: request.ID, userID: request.InitiatorID, role: "admin", joinedAt: now},
+			{chatID: request.ID, userID: request.MemberID, role: "admin", joinedAt: now},
+		}
+
+		membersBuilder := squirrel.StatementBuilder.
+			Insert("chats_members").
+			Columns("chat_id", "user_id", "role", "joined_at").
+			Values(s.buildChatMembersRelation(relations))
+
+		query, args, err = membersBuilder.ToSql()
+
+		_, err = tx.Exec(ctx, query, args...)
+
+		if err != nil {
+			return apperrors.Internal(err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return request.ID, nil
+}
+
+func (s *ChatsStore) CreateGroupChat(ctx context.Context, request *requests.CreateGroupChatRequest) (string, error) {
+	chatBuilder := dbx.StatementBuilder.
+		Insert("chats").
+		Columns("id", "slug", "name", "type", "created_at").
+		Values(request.ID, request.Slug, request.Name, request.Type, request.CreatedAt)
+
+	query, args, err := chatBuilder.ToSql()
+
+	err = dbx.InTransaction(ctx, s.db, func(ctx context.Context, tx pgx.Tx) error {
+		_, err = s.db.Exec(ctx, query, args...)
+
+		if err != nil {
+			return apperrors.Internal(err)
+		}
+
+		now := time.Now()
+
+		var relations []*chatServiceRelation
+		for _, memberID := range request.MemberIDs {
+			relations = append(relations, &chatServiceRelation{chatID: request.ID, userID: memberID, role: "member", joinedAt: now})
+		}
+
+		relations = append(relations, &chatServiceRelation{chatID: request.ID, userID: request.InitiatorID, role: "admin", joinedAt: now})
+
+		membersBuilder := squirrel.StatementBuilder.
+			Insert("chats_members").
+			Columns("chat_id", "user_id", "role", "joined_at").
+			Values(s.buildChatMembersRelation(relations))
+
+		query, args, err = membersBuilder.ToSql()
+
+		_, err = tx.Exec(ctx, query, args...)
+
+		if err != nil {
+			return apperrors.Internal(err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return request.ID, nil
 }
 
 func (s *ChatsStore) GetPrivateChatIDBetweenUsers(ctx context.Context, requestID, searchedID string) (string, error) {
@@ -78,4 +171,21 @@ func (s *ChatsStore) GetGroupChatIDBetweenUsers(ctx context.Context, userIDs ...
 	}
 
 	return chatID, nil
+}
+
+type chatServiceRelation struct {
+	chatID   string
+	userID   string
+	role     string
+	joinedAt time.Time
+}
+
+func (s *ChatsStore) buildChatMembersRelation(relations []*chatServiceRelation) [][]any {
+	var values [][]any
+
+	for _, r := range relations {
+		values = append(values, []any{r.chatID, r.userID, r.role, r.joinedAt})
+	}
+
+	return values
 }

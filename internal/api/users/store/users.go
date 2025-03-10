@@ -2,9 +2,9 @@ package store
 
 import (
 	"context"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/users/models"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/users/models/requests"
 
-	"github.com/DavidMovas/SpeakUp-Server/internal/models"
-	"github.com/DavidMovas/SpeakUp-Server/internal/models/requests"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/dbx"
 	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
 	"github.com/Masterminds/squirrel"

@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS chats (
     id VARCHAR(12) PRIMARY KEY,
     slug VARCHAR(12) UNIQUE NOT NULL,
     name VARCHAR(64) NOT NULL,
-    type chat_type NOT NULL DEFAULT 'private',
+    type chat_type NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
