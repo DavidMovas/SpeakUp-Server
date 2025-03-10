@@ -46,12 +46,16 @@ func (h *ChatHandler) CreateChat(ctx context.Context, request *v1.CreateChatRequ
 func (h *ChatHandler) Connect(stream grpc.BidiStreamingServer[v1.ConnectRequest, v1.ConnectResponse]) error {
 	msg, err := stream.Recv()
 	if err != nil {
+		h.logger.Error("Error receiving message", zap.Error(err))
 		return err
 	}
 
 	if _, ok := msg.Payload.(*v1.ConnectRequest_JointChat); ok {
 		h.hub.RegisterStream(msg.GetJointChat().GetUserId(), stream)
+		return nil
 	}
+
+	h.logger.Error("Wrong payload", zap.Any("payload", msg.Payload))
 
 	return apperrors.Internal(errors.New("invalid steam payload"))
 }

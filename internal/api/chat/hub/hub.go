@@ -38,6 +38,8 @@ func (h *Hub) RegisterStream(userID string, stream clientStream) {
 	h.Lock()
 	defer h.Unlock()
 
+	h.logger.Info("Register stream", zap.String("user_id", userID))
+
 	if c, ok := h.clients[userID]; ok {
 		c.BidiStreamingServer = stream
 		return
@@ -57,6 +59,10 @@ func (h *Hub) manage(c *client) {
 	}()
 
 	for {
+		if sug := h.ctx.Done(); sug != nil {
+			return
+		}
+
 		req, err := c.Recv()
 		if err == io.EOF {
 			h.logger.Debug("Client disconnected", zap.String("user_id", c.userID))
