@@ -9,7 +9,7 @@ option go_package = "./grpc/v1";
 
 service ChatService {
   rpc CreateChat(CreateChatRequest) returns (CreateChatResponse);
-  rpc JoinChat(stream ChatMessage) returns (stream ChatMessage);
+  rpc Connect(stream ChatMessage) returns (stream ChatMessage);
   rpc GetChatHistory(GetChatHistoryRequest) returns (GetChatHistoryResponse);
 }
 

@@ -29,10 +29,17 @@ func NewChatHandler(service *service.ChatService, pipe *pipe.Pipe, logger *zap.L
 }
 
 func (h *ChatHandler) CreateChat(ctx context.Context, request *v1.CreateChatRequest) (*v1.CreateChatResponse, error) {
-	panic("implement me")
+	result, err := h.service.CreateChat(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+
+	h.logger.Debug("Chat created", zap.String("chat_id", result.ChatId))
+
+	return result, nil
 }
 
-func (h *ChatHandler) JoinChat(stream grpc.BidiStreamingServer[v1.ChatMessage, v1.ChatMessage]) error {
+func (h *ChatHandler) Connect(stream grpc.BidiStreamingServer[v1.ChatMessage, v1.ChatMessage]) error {
 	panic("implement me")
 }
 
