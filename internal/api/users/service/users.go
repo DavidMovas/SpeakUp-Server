@@ -1,8 +1,8 @@
-package services
+package service
 
 import (
 	"context"
-	"github.com/DavidMovas/SpeakUp-Server/internal/api/stores"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/users/store"
 	"github.com/DavidMovas/SpeakUp-Server/internal/models"
 	"github.com/DavidMovas/SpeakUp-Server/internal/models/requests"
 	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
@@ -12,12 +12,12 @@ import (
 )
 
 type UsersService struct {
-	store      *stores.UsersStore
+	store      *store.UsersStore
 	jwtService *jwt.Service
 	logger     *zap.Logger
 }
 
-func NewUsersService(store *stores.UsersStore, jwtService *jwt.Service, logger *zap.Logger) *UsersService {
+func NewUsersService(store *store.UsersStore, jwtService *jwt.Service, logger *zap.Logger) *UsersService {
 	return &UsersService{
 		store:      store,
 		jwtService: jwtService,

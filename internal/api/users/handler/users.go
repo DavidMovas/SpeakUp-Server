@@ -1,8 +1,8 @@
-package handlers
+package handler
 
 import (
 	"context"
-	"github.com/DavidMovas/SpeakUp-Server/internal/api/services"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/users/service"
 	"github.com/DavidMovas/SpeakUp-Server/internal/models/requests"
 	"github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
 	"go.uber.org/zap"
@@ -12,13 +12,13 @@ import (
 var _ v1.UsersServiceServer = (*UsersHandler)(nil)
 
 type UsersHandler struct {
-	service *services.UsersService
+	service *service.UsersService
 	logger  *zap.Logger
 
 	v1.UnimplementedUsersServiceServer
 }
 
-func NewUsersHandler(service *services.UsersService, logger *zap.Logger) *UsersHandler {
+func NewUsersHandler(service *service.UsersService, logger *zap.Logger) *UsersHandler {
 	return &UsersHandler{
 		service: service,
 		logger:  logger,

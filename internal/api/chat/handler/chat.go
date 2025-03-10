@@ -1,8 +1,8 @@
-package handlers
+package handler
 
 import (
 	"context"
-	"github.com/DavidMovas/SpeakUp-Server/internal/api/services"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/service"
 	"github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -11,13 +11,13 @@ import (
 var _ v1.ChatServiceServer = (*ChatHandler)(nil)
 
 type ChatHandler struct {
-	service *services.ChatService
+	service *service.ChatService
 	logger  *zap.Logger
 
 	v1.UnimplementedChatServiceServer
 }
 
-func NewChatHandler(service *services.ChatService, logger *zap.Logger) *ChatHandler {
+func NewChatHandler(service *service.ChatService, logger *zap.Logger) *ChatHandler {
 	return &ChatHandler{
 		service: service,
 		logger:  logger,

@@ -3,9 +3,12 @@ package internal
 import (
 	"context"
 	"fmt"
-	"github.com/DavidMovas/SpeakUp-Server/internal/api/handlers"
-	"github.com/DavidMovas/SpeakUp-Server/internal/api/services"
-	"github.com/DavidMovas/SpeakUp-Server/internal/api/stores"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/handler"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/service"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/store"
+	handler2 "github.com/DavidMovas/SpeakUp-Server/internal/api/users/handler"
+	service2 "github.com/DavidMovas/SpeakUp-Server/internal/api/users/service"
+	store2 "github.com/DavidMovas/SpeakUp-Server/internal/api/users/store"
 	"github.com/DavidMovas/SpeakUp-Server/internal/routes"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/clients"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/echox"
@@ -79,13 +82,13 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 
 	jwtService := jwt.NewService(cfg.JWTConfig.Secret, cfg.JWTConfig.AccessExpiration, cfg.JWTConfig.RefreshExpiration)
 
-	usersStore := stores.NewUsersStore(postgres, logger.Logger)
-	usersService := services.NewUsersService(usersStore, jwtService, logger.Logger)
-	usersHandler := handlers.NewUsersHandler(usersService, logger.Logger)
+	usersStore := store2.NewUsersStore(postgres, logger.Logger)
+	usersService := service2.NewUsersService(usersStore, jwtService, logger.Logger)
+	usersHandler := handler2.NewUsersHandler(usersService, logger.Logger)
 
-	chatStore := stores.NewChatsStore(postgres, redis, logger.Logger)
-	chatService := services.NewChatService(chatStore, logger.Logger)
-	chatHandler := handlers.NewChatHandler(chatService, logger.Logger)
+	chatStore := store.NewChatsStore(postgres, redis, logger.Logger)
+	chatService := service.NewChatService(chatStore, logger.Logger)
+	chatHandler := handler.NewChatHandler(chatService, logger.Logger)
 
 	e := echo.New()
 	e.HTTPErrorHandler = echox.NewErrorHandler(logger.Logger)
