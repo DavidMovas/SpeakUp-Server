@@ -36,7 +36,7 @@ import (
 type Server struct {
 	e          *echo.Echo
 	grpcServer *grpc.Server
-	hubStop    context.CancelFunc
+	hubCancel  context.CancelFunc
 	logger     *log.Logger
 	telemetry  *trace.TracerProvider
 	metrics    *metric.MeterProvider
@@ -124,7 +124,7 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 	return &Server{
 		e:          e,
 		grpcServer: grpcServer,
-		hubStop:    hubCancel,
+		hubCancel:  hubCancel,
 		logger:     logger,
 		telemetry:  telem,
 		metrics:    promet,
@@ -185,7 +185,7 @@ func (s *Server) Shutdown(ctx context.Context) error {
 		s.logger.Warn("Failed to shutdown metrics server", zap.Error(err))
 	}
 
-	s.hubStop()
+	s.hubCancel()
 
 	err = s.Close()
 	if err != nil {
