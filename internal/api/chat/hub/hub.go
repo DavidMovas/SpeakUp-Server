@@ -8,6 +8,7 @@ import (
 	"google.golang.org/grpc"
 	"io"
 	"sync"
+	"time"
 )
 
 type clientStream = grpc.BidiStreamingServer[v1.ConnectRequest, v1.ConnectResponse]
@@ -26,7 +27,6 @@ type Hub struct {
 func NewHub(ctx context.Context, readStoreCh <-chan *v1.Message, writeStoreCh chan<- *v1.Message, logger *zap.Logger) *Hub {
 	hub := &Hub{
 		ctx:          ctx,
-		RWMutex:      sync.RWMutex{},
 		readStoreCh:  readStoreCh,
 		writeStoreCh: writeStoreCh,
 		clients:      make(clientSet),
@@ -37,60 +37,70 @@ func NewHub(ctx context.Context, readStoreCh <-chan *v1.Message, writeStoreCh ch
 	return hub
 }
 
-func (h *Hub) Connect(stream clientStream) error {
-	h.logger.Debug("HUB CONNECT")
+func (h *Hub) HandleStream(stream clientStream) error {
+	return h.handleStream(stream)
+}
 
-	in, err := stream.Recv()
-	if err != nil {
-		h.logger.Error("Error receiving from stream", zap.Error(err))
-		return fmt.Errorf("error receiving from stream: %w", err)
-	}
-
-	connectRoomReq, ok := in.Payload.(*v1.ConnectRequest_JoinChat_)
-	if !ok {
-		h.logger.Error("Error receiving from stream", zap.Any("in", in))
-		return fmt.Errorf("error receiving from stream: %w", err)
-	}
-
-	h.logger.Debug("HUB JoinChat Request", zap.String("chat_id", connectRoomReq.JoinChat.ChatId), zap.String("user_id", connectRoomReq.JoinChat.UserId))
-
-	userID := connectRoomReq.JoinChat.UserId
-
-	r := h.getRoom(connectRoomReq.JoinChat.ChatId)
-	r.addClient(newClient(userID, stream))
-
+func (h *Hub) handleStream(stream clientStream) error {
 	for {
-		in, err = stream.Recv()
+		if h.ctx.Err() != nil {
+			return nil
+		}
+
+		in, err := stream.Recv()
 		switch {
 		case err == io.EOF:
-			r.removeClient(userID)
+			return nil
+		case stream.Context().Err() != nil:
 			return nil
 		case err != nil:
-			r.removeClient(userID)
 			h.logger.Error("Error receiving from stream", zap.Error(err))
 			return fmt.Errorf("error receiving from stream: %w", err)
-		case stream.Context().Err() != nil:
-			r.removeClient(userID)
-			h.logger.Error("Error receiving from stream", zap.Error(stream.Context().Err()))
-			return fmt.Errorf("error receiving from stream: %w", stream.Context().Err())
 		}
 
 		switch p := in.Payload.(type) {
 		case *v1.ConnectRequest_Message:
-			r.addMessage(p.Message)
+			msg := &Message{
+				ChatId:    p.Message.ChatId,
+				SenderId:  p.Message.SenderId,
+				Message:   p.Message.Message,
+				CreatedAt: time.Now(),
+			}
+
+			h.handleMessage(p.Message.ChatId, msg)
+
+		case *v1.ConnectRequest_JoinChat_:
+			h.handleJoin(p.JoinChat.ChatId, p.JoinChat.UserId, stream)
 		}
 	}
+}
+
+func (h *Hub) handleJoin(chatID, userID string, stream clientStream) {
+	h.getRoom(chatID).addClient(newClient(userID, stream))
+}
+
+func (h *Hub) handleMessage(chatID string, msg *Message) {
+	h.rooms[chatID].addMessage(msg)
 }
 
 func (h *Hub) getRoom(chatID string) *room {
 	h.RLock()
 	defer h.RUnlock()
 
-	if r, ok := h.rooms[chatID]; ok {
-		return r
-	} else {
-		r = newRoom(chatID)
-		h.rooms[chatID] = r
+	r, ok := h.rooms[chatID]
+	if ok {
 		return r
 	}
+
+	r = newRoom(chatID, h.removeRoom)
+	h.rooms[chatID] = r
+
+	return r
+}
+
+func (h *Hub) removeRoom(chatID string) {
+	h.Lock()
+	defer h.Unlock()
+
+	delete(h.rooms, chatID)
 }

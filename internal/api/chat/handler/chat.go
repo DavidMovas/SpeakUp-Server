@@ -42,7 +42,7 @@ func (h *ChatHandler) CreateChat(ctx context.Context, request *v1.CreateChatRequ
 }
 
 func (h *ChatHandler) Connect(stream grpc.BidiStreamingServer[v1.ConnectRequest, v1.ConnectResponse]) error {
-	return h.hub.Connect(stream)
+	return h.hub.HandleStream(stream)
 }
 
 func (h *ChatHandler) GetChatHistory(_ context.Context, _ *v1.GetChatHistoryRequest) (*v1.GetChatHistoryResponse, error) {
