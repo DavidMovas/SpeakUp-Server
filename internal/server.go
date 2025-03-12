@@ -106,7 +106,14 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 	e.HideBanner = true
 	e.HidePort = true
 
-	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors.NewChainUnaryErrorInterceptor(logger.Logger)))
+	rpc, _ := promet.Meter("server_requests_total").Int64Counter("requests_per_seconds")
+
+	grpcServer := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			interceptors.NewChainUnaryErrorInterceptor(logger.Logger),
+			interceptors.NewChainUnaryRequestsCounterInterceptor(rpc),
+		),
+	)
 
 	reflection.Register(grpcServer)
 
