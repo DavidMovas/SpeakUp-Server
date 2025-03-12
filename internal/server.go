@@ -96,7 +96,7 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 	p := pipe.NewPipe(chatService, usersService)
 
 	hubCtx, hubCancel := context.WithCancel(context.Background())
-	h := hub.NewHub(hubCtx, chatStore, logger.Logger)
+	h := hub.NewHub(hubCtx, chatStore, logger.Logger, promet)
 
 	usersHandler := usersHnd.NewUsersHandler(usersService, p, logger.Logger)
 	chatHandler := chatHnd.NewChatHandler(h, chatService, p, logger.Logger)
