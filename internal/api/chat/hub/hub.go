@@ -3,6 +3,8 @@ package hub
 import (
 	"context"
 	"fmt"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/models"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/store"
 	v1 "github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -16,22 +18,21 @@ type clientSet = map[string]*client
 
 type Hub struct {
 	sync.RWMutex
-	ctx          context.Context
-	clients      clientSet
-	rooms        map[string]*room
-	readStoreCh  <-chan *v1.Message
-	writeStoreCh chan<- *v1.Message
-	logger       *zap.Logger
+	ctx     context.Context
+	clients clientSet
+	rooms   map[string]*room
+	store   *store.ChatsStore
+
+	logger *zap.Logger
 }
 
-func NewHub(ctx context.Context, readStoreCh <-chan *v1.Message, writeStoreCh chan<- *v1.Message, logger *zap.Logger) *Hub {
+func NewHub(ctx context.Context, store *store.ChatsStore, logger *zap.Logger) *Hub {
 	hub := &Hub{
-		ctx:          ctx,
-		readStoreCh:  readStoreCh,
-		writeStoreCh: writeStoreCh,
-		clients:      make(clientSet),
-		rooms:        make(map[string]*room),
-		logger:       logger,
+		ctx:     ctx,
+		store:   store,
+		clients: make(clientSet),
+		rooms:   make(map[string]*room),
+		logger:  logger,
 	}
 
 	return hub
@@ -60,9 +61,9 @@ func (h *Hub) handleStream(stream clientStream) error {
 
 		switch p := in.Payload.(type) {
 		case *v1.ConnectRequest_Message:
-			msg := &Message{
-				ChatId:    p.Message.ChatId,
-				SenderId:  p.Message.SenderId,
+			msg := &models.Message{
+				ChatID:    p.Message.ChatId,
+				SenderID:  p.Message.SenderId,
 				Message:   p.Message.Message,
 				CreatedAt: time.Now(),
 			}
@@ -79,7 +80,7 @@ func (h *Hub) handleJoin(chatID, userID string, stream clientStream) {
 	h.getRoom(chatID).addClient(newClient(userID, stream))
 }
 
-func (h *Hub) handleMessage(chatID string, msg *Message) {
+func (h *Hub) handleMessage(chatID string, msg *models.Message) {
 	h.rooms[chatID].addMessage(msg)
 }
 
@@ -92,7 +93,7 @@ func (h *Hub) getRoom(chatID string) *room {
 		return r
 	}
 
-	r = newRoom(chatID, h.removeRoom)
+	r = newRoom(chatID, h.store, h.removeRoom)
 	h.rooms[chatID] = r
 
 	return r

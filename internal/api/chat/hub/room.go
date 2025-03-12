@@ -1,6 +1,9 @@
 package hub
 
 import (
+	"context"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/models"
+	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/store"
 	v1 "github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"sync"
@@ -11,16 +14,18 @@ type room struct {
 	id            string
 	clients       map[string]*client
 	onlineClients uint
-	messageChan   chan *Message
+	messageChan   chan *models.Message
+	store         *store.ChatsStore
 
 	removeFromHubFunc func(id string)
 }
 
-func newRoom(id string, remFn func(id string)) *room {
+func newRoom(id string, store *store.ChatsStore, remFn func(id string)) *room {
 	var r room
 	r.id = id
+	r.store = store
 	r.clients = make(map[string]*client)
-	r.messageChan = make(chan *Message, 50)
+	r.messageChan = make(chan *models.Message, 50)
 	r.removeFromHubFunc = remFn
 
 	go r.broadcast()
@@ -36,9 +41,11 @@ func (r *room) addClient(c *client) {
 	r.onlineClients++
 }
 
-func (r *room) addMessage(msg *Message) {
+func (r *room) addMessage(msg *models.Message) {
 	r.Lock()
 	defer r.Unlock()
+
+	_ = r.store.SaveMessage(context.Background(), msg)
 
 	r.messageChan <- msg
 }
@@ -70,17 +77,17 @@ func (r *room) removeClient(userID string) {
 	delete(r.clients, userID)
 
 	r.onlineClients--
-	if r.onlineClients < 1 {
+	if r.onlineClients == 0 {
 		r.removeFromHubFunc(r.id)
 	}
 }
 
-func (r *room) formMessage(msg *Message) *v1.ConnectResponse {
+func (r *room) formMessage(msg *models.Message) *v1.ConnectResponse {
 	return &v1.ConnectResponse{
 		Payload: &v1.ConnectResponse_Message{
 			Message: &v1.Message{
-				ChatId:    msg.ChatId,
-				SenderId:  msg.SenderId,
+				ChatId:    msg.ChatID,
+				SenderId:  msg.SenderID,
 				Message:   msg.Message,
 				CreatedAt: timestamppb.New(msg.CreatedAt),
 			},
