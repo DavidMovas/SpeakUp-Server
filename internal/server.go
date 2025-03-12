@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/hub"
 	pipe "github.com/DavidMovas/SpeakUp-Server/internal/shared/pipe"
+	"google.golang.org/grpc/reflection"
 	"net"
 	"time"
 
@@ -106,6 +107,8 @@ func NewServer(ctx context.Context, cfg *config.Config) (*Server, error) {
 	e.HidePort = true
 
 	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors.NewChainUnaryErrorInterceptor(logger.Logger)))
+
+	reflection.Register(grpcServer)
 
 	err = routes.RegisterHTTPAPI(e, telem, promet, logger.Logger, cfg)
 	if err != nil {

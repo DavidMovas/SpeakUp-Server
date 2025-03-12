@@ -37,7 +37,7 @@ message CreateChatResponse {
 
 message ConnectRequest {
   oneof payload {
-    JoinChat joint_chat = 1;
+    JoinChat join_chat = 1;
     Message message = 2;
   }
 

@@ -2,13 +2,10 @@ package handler
 
 import (
 	"context"
-	"errors"
-
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/hub"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/service"
 	v1 "github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
 	"github.com/DavidMovas/SpeakUp-Server/internal/shared/pipe"
-	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -45,19 +42,7 @@ func (h *ChatHandler) CreateChat(ctx context.Context, request *v1.CreateChatRequ
 }
 
 func (h *ChatHandler) Connect(stream grpc.BidiStreamingServer[v1.ConnectRequest, v1.ConnectResponse]) error {
-	msg, err := stream.Recv()
-	if err != nil {
-		h.logger.Error("Error receiving message", zap.Error(err))
-		return err
-	}
-
-	if _, ok := msg.Payload.(*v1.ConnectRequest_JointChat); ok {
-		h.hub.RegisterStream(msg.GetJointChat().GetUserId(), stream)
-		return nil
-	}
-
-	h.logger.Error("Wrong payload", zap.Any("payload", msg.Payload))
-	return apperrors.Internal(errors.New("invalid stream payload: unexpected message type"))
+	return h.hub.Connect(stream)
 }
 
 func (h *ChatHandler) GetChatHistory(_ context.Context, _ *v1.GetChatHistoryRequest) (*v1.GetChatHistoryResponse, error) {
