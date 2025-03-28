@@ -80,7 +80,6 @@ func (h *Hub) handleStream(stream clientStream) error {
 			}
 
 			h.handleMessage(p.Message.ChatId, msg)
-
 		case *v1.ConnectRequest_JoinChat_:
 			h.handleJoin(p.JoinChat.ChatId, p.JoinChat.UserId, stream)
 		}

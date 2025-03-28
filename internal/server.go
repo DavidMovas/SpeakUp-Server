@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/hub"
-	pipe "github.com/DavidMovas/SpeakUp-Server/internal/shared/pipe"
+	"github.com/DavidMovas/SpeakUp-Server/internal/shared/pipe"
 	"google.golang.org/grpc/reflection"
 
 	chatHnd "github.com/DavidMovas/SpeakUp-Server/internal/api/chat/handler"

@@ -22,17 +22,17 @@ func (s *ChatsStore) SaveMessage(ctx context.Context, msg *models.Message) error
 	group := errgroup.Group{}
 
 	group.Go(func() error {
-		return s.saveMessagesToCache(ctx, msg)
+		return s.saveMessageToCache(ctx, msg)
 	})
 
 	group.Go(func() error {
-		return s.saveMessages(ctx, msg)
+		return s.saveMessage(ctx, msg)
 	})
 
 	return group.Wait()
 }
 
-func (s *ChatsStore) saveMessagesToCache(ctx context.Context, msg *models.Message) error {
+func (s *ChatsStore) saveMessageToCache(ctx context.Context, msg *models.Message) error {
 	msgData, err := json.Marshal(msg)
 	if err != nil {
 		return fmt.Errorf("error while marshaling message: %w", err)
@@ -51,7 +51,7 @@ func (s *ChatsStore) saveMessagesToCache(ctx context.Context, msg *models.Messag
 	return nil
 }
 
-func (s *ChatsStore) saveMessages(ctx context.Context, msg *models.Message) error {
+func (s *ChatsStore) saveMessage(ctx context.Context, msg *models.Message) error {
 	id := helpers.GenerateID()
 
 	builder := dbx.StatementBuilder.
