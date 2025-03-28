@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/models/requests"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/store"
 	v1 "github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
@@ -24,7 +25,6 @@ func NewChatService(store *store.ChatsStore, logger *zap.Logger) *ChatService {
 }
 
 func (s *ChatService) CreateChat(ctx context.Context, request *v1.CreateChatRequest) (*v1.CreateChatResponse, error) {
-
 	switch request.Payload.(type) {
 	case *v1.CreateChatRequest_PrivateChat_:
 		req, err := model.MakeRequest[requests.CreatePrivateChatRequest](request.GetPrivateChat())

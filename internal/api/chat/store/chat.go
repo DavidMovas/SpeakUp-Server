@@ -2,6 +2,8 @@ package store
 
 import (
 	"context"
+	"time"
+
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/models/requests"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/dbx"
 	apperrors "github.com/DavidMovas/SpeakUp-Server/internal/utils/error"
@@ -10,7 +12,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
-	"time"
 )
 
 type ChatsStore struct {
@@ -37,7 +38,6 @@ func (s *ChatsStore) CreatePrivateChat(ctx context.Context, request *requests.Cr
 
 	err = dbx.InTransaction(ctx, s.db, func(ctx context.Context, tx pgx.Tx) error {
 		_, err = s.db.Exec(ctx, query, args...)
-
 		if err != nil {
 			return apperrors.Internal(err)
 		}
@@ -57,7 +57,6 @@ func (s *ChatsStore) CreatePrivateChat(ctx context.Context, request *requests.Cr
 		query, args, err = membersBuilder.ToSql()
 
 		_, err = tx.Exec(ctx, query, args...)
-
 		if err != nil {
 			return apperrors.Internal(err)
 		}
@@ -81,7 +80,6 @@ func (s *ChatsStore) CreateGroupChat(ctx context.Context, request *requests.Crea
 
 	err = dbx.InTransaction(ctx, s.db, func(ctx context.Context, tx pgx.Tx) error {
 		_, err = s.db.Exec(ctx, query, args...)
-
 		if err != nil {
 			return apperrors.Internal(err)
 		}
@@ -103,7 +101,6 @@ func (s *ChatsStore) CreateGroupChat(ctx context.Context, request *requests.Crea
 		query, args, err = membersBuilder.ToSql()
 
 		_, err = tx.Exec(ctx, query, args...)
-
 		if err != nil {
 			return apperrors.Internal(err)
 		}

@@ -2,11 +2,12 @@ package hub
 
 import (
 	"context"
+	"sync"
+
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/models"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/store"
 	v1 "github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"sync"
 )
 
 type room struct {

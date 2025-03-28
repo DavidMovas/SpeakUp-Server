@@ -3,6 +3,10 @@ package hub
 import (
 	"context"
 	"fmt"
+	"io"
+	"sync"
+	"time"
+
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/models"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/store"
 	v1 "github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
@@ -10,17 +14,14 @@ import (
 	"go.opentelemetry.io/otel/sdk/metric"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"io"
-	"sync"
-	"time"
 )
 
-var (
-	roomsAmountHist met.Int64Histogram
-)
+var roomsAmountHist met.Int64Histogram
 
-type clientStream = grpc.BidiStreamingServer[v1.ConnectRequest, v1.ConnectResponse]
-type clientSet = map[string]*client
+type (
+	clientStream = grpc.BidiStreamingServer[v1.ConnectRequest, v1.ConnectResponse]
+	clientSet    = map[string]*client
+)
 
 type Hub struct {
 	sync.RWMutex

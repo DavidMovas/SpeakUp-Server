@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/models"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/dbx"
 	"github.com/DavidMovas/SpeakUp-Server/internal/utils/helpers"
 	"golang.org/x/sync/errgroup"
-	"time"
 )
 
 const (

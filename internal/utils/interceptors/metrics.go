@@ -2,6 +2,7 @@ package interceptors
 
 import (
 	"context"
+
 	"go.opentelemetry.io/otel/metric"
 	"google.golang.org/grpc"
 )

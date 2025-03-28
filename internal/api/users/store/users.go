@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/users/models"
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/users/models/requests"
 

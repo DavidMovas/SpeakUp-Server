@@ -3,11 +3,12 @@ package internal
 import (
 	"context"
 	"fmt"
+	"net"
+	"time"
+
 	"github.com/DavidMovas/SpeakUp-Server/internal/api/chat/hub"
 	pipe "github.com/DavidMovas/SpeakUp-Server/internal/shared/pipe"
 	"google.golang.org/grpc/reflection"
-	"net"
-	"time"
 
 	chatHnd "github.com/DavidMovas/SpeakUp-Server/internal/api/chat/handler"
 	chatSrv "github.com/DavidMovas/SpeakUp-Server/internal/api/chat/service"

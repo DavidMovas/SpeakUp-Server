@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+
 	requests2 "github.com/DavidMovas/SpeakUp-Server/internal/api/users/models/requests"
 	"github.com/DavidMovas/SpeakUp-Server/internal/shared/model"
 	"github.com/DavidMovas/SpeakUp-Server/internal/shared/pipe"

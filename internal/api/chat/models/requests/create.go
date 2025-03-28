@@ -2,11 +2,12 @@ package requests
 
 import (
 	"fmt"
+	"time"
+
 	v1 "github.com/DavidMovas/SpeakUp-Server/internal/shared/grpc/v1"
 	"github.com/DavidMovas/SpeakUp-Server/internal/shared/model"
 	genID "github.com/DavidMovas/SpeakUp-Server/internal/utils/helpers"
 	genName "github.com/DavidMovas/SpeakUp-Server/internal/utils/models/helpers"
-	"time"
 )
 
 var _ model.Requestable[CreatePrivateChatRequest, *v1.CreateChatRequest_PrivateChat] = (*CreatePrivateChatRequest)(nil)
